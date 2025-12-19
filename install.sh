@@ -114,15 +114,16 @@ echo ""
 echo "claudebar statusline installed successfully!"
 echo ""
 echo "Restart Claude Code to see your new statusline:"
+
 case "$MODE" in
     label)
-        echo "  DIR: parent/current | BRANCH: main | STAGED: 0 | UNSTAGED: 0 | ADDED: 0"
+        echo "  DIR: parent/current | BRANCH: main | STAGED: 0 | ... | Context: 42% (84k/200k)"
         ;;
     none)
-        echo "  parent/current | main | S: 0 | U: 0 | A: 0"
+        echo "  parent/current | main | S: 0 | ... | 42% (84k/200k)"
         ;;
     *)
-        echo "  📂 parent/current | 🌿 branch | 📄 S: 0 | U: 0 | A: 0"
+        echo "  📂 parent/current | 🌿 main | 📄 S: 0 | ... | 🧠 42% (84k/200k)"
         ;;
 esac
 echo ""

@@ -3,7 +3,7 @@
 A bash statusline for Claude Code.
 
 ```
-📂 parent/current | 🌳 🌿 main | 📄 S: 0 | U: 2 | A: 1
+📂 parent/current | 🌿 main | 📄 S: 0 | U: 2 | A: 1 | 🧠 42% (84k/200k)
 ```
 
 ## Install
@@ -82,6 +82,11 @@ sudo dnf install jq
   <tr>
     <td>A</td>
     <td>Untracked/added file count</td>
+  </tr>
+  <tr>
+    <td>🧠</td>
+    <td></td>
+    <td>Context window usage (color-coded: green &lt;50%, yellow 50-80%, red &gt;80%)</td>
   </tr>
 </table>
 

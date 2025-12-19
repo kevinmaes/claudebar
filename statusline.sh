@@ -3,7 +3,7 @@
 # Claude Code Statusline - claudebar
 # https://github.com/kevinmaes/claudebar
 #
-# Displays: 📂 parent/current | 🌳 🌿 main | 📄 S: 0 | U: 2 | A: 1
+# Displays: 📂 parent/current | 🌿 main | 📄 S: 0 | U: 2 | A: 1 | 🧠 42% (84k/200k)
 #
 # Configuration:
 #   CLAUDEBAR_MODE: icon (default), label, or none
@@ -12,6 +12,8 @@
 # ANSI color codes
 BLUE='\033[34m'
 GREEN='\033[32m'
+YELLOW='\033[33m'
+RED='\033[31m'
 RESET='\033[0m'
 
 # Display mode (icon, label, none)
@@ -105,6 +107,38 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
         else
             status="$status | ${LABEL_STAGED} $staged | ${LABEL_UNSTAGED} $unstaged | ${LABEL_ADDED} $added"
         fi
+    fi
+fi
+
+# Context window visualization
+context_size=$(echo "$input" | jq -r '.context_window.context_window_size // empty')
+usage=$(echo "$input" | jq -r '.context_window.current_usage // empty')
+
+if [ -n "$context_size" ] && [ "$usage" != "" ] && [ "$usage" != "null" ]; then
+    # Calculate total tokens used (input + cache tokens)
+    current_tokens=$(echo "$input" | jq '.context_window.current_usage | (.input_tokens // 0) + (.cache_creation_input_tokens // 0) + (.cache_read_input_tokens // 0)')
+    percent=$((current_tokens * 100 / context_size))
+
+    # Color based on usage threshold
+    if [ "$percent" -ge 80 ]; then
+        CTX_COLOR="$RED"
+    elif [ "$percent" -ge 50 ]; then
+        CTX_COLOR="$YELLOW"
+    else
+        CTX_COLOR="$GREEN"
+    fi
+
+    # Token counts in k format
+    current_k=$((current_tokens / 1000))
+    total_k=$((context_size / 1000))
+
+    # Format: 42% (84k/200k)
+    if [ "$MODE" = "label" ]; then
+        status="$status | Context: ${CTX_COLOR}${percent}%${RESET} (${current_k}k/${total_k}k)"
+    elif [ "$MODE" = "none" ]; then
+        status="$status | ${CTX_COLOR}${percent}%${RESET} (${current_k}k/${total_k}k)"
+    else
+        status="$status | 🧠 ${CTX_COLOR}${percent}%${RESET} (${current_k}k/${total_k}k)"
     fi
 fi
 
