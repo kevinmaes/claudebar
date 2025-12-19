@@ -9,19 +9,27 @@ A bash statusline for Claude Code.
 ## Install
 
 ```bash
+curl -fsSL https://kevinmaes.github.io/claudebar/install.sh | bash
+```
+
+<details>
+<summary>Or use the full GitHub URL</summary>
+
+```bash
 curl -fsSL https://raw.githubusercontent.com/kevinmaes/claudebar/main/install.sh | bash
 ```
+</details>
 
 ## Update
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kevinmaes/claudebar/main/update.sh | bash
+curl -fsSL https://kevinmaes.github.io/claudebar/update.sh | bash
 ```
 
 ## Uninstall
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kevinmaes/claudebar/main/uninstall.sh | bash
+curl -fsSL https://kevinmaes.github.io/claudebar/uninstall.sh | bash
 ```
 
 ## Requirements
