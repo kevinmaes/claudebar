@@ -49,14 +49,14 @@ sudo dnf install jq
 
 ## What it displays
 
-| Icon | Meaning |
-|------|---------|
-| 📂 | Abbreviated path (last two segments) |
-| 🌳 | Git worktree indicator (only shown in worktrees) |
-| 🌿 | Current git branch (green) |
-| 📄 S: | Staged file count |
-| U: | Unstaged file count |
-| A: | Untracked/added file count |
+| Icon | Files | Meaning |
+|------|-------|---------|
+| 📂 | | Abbreviated path (last two segments) |
+| 🌳 | | Git worktree indicator (only shown in worktrees) |
+| 🌿 | | Current git branch (green) |
+| 📄 | S | Staged file count |
+| | U | Unstaged file count |
+| | A | Untracked/added file count |
 
 ## Customization
 
