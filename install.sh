@@ -69,7 +69,7 @@ curl -fsSL "$RAW_URL" -o "$STATUSLINE_SCRIPT"
 # Ask for display mode preference
 echo ""
 echo "Choose display mode:"
-echo "  1) icon  - Emoji icons (default)"
+echo "  1) icon  - Emoji icons 📂🌿📄 (default)"
 echo "  2) label - Text labels"
 echo "  3) none  - Minimal output"
 echo ""
