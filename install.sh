@@ -14,17 +14,46 @@ RAW_URL="https://raw.githubusercontent.com/kevinmaes/claudebar/main/statusline.s
 
 echo "Installing claudebar statusline..."
 
-# Check for jq dependency
+# Check for jq dependency and offer to install
 if ! command -v jq &> /dev/null; then
     echo ""
-    echo "Error: jq is required but not installed."
+    echo "jq is required but not installed."
     echo ""
-    echo "Install jq with:"
-    echo "  macOS:  brew install jq"
-    echo "  Ubuntu: sudo apt install jq"
-    echo "  Fedora: sudo dnf install jq"
+
+    # Read from /dev/tty to support curl|bash usage
+    read -p "Install jq now? [y/N] " -n 1 -r < /dev/tty
     echo ""
-    exit 1
+
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            if command -v brew &> /dev/null; then
+                echo "Installing jq via Homebrew..."
+                brew install jq
+            else
+                echo "Error: Homebrew not found. Install jq manually: https://jqlang.github.io/jq/download/"
+                exit 1
+            fi
+        elif command -v apt &> /dev/null; then
+            echo "Installing jq via apt..."
+            sudo apt install -y jq
+        elif command -v dnf &> /dev/null; then
+            echo "Installing jq via dnf..."
+            sudo dnf install -y jq
+        elif command -v pacman &> /dev/null; then
+            echo "Installing jq via pacman..."
+            sudo pacman -S --noconfirm jq
+        else
+            echo "Error: Could not detect package manager. Install jq manually: https://jqlang.github.io/jq/download/"
+            exit 1
+        fi
+    else
+        echo ""
+        echo "Install jq manually:"
+        echo "  macOS:  brew install jq"
+        echo "  Ubuntu: sudo apt install jq"
+        echo "  Fedora: sudo dnf install jq"
+        exit 1
+    fi
 fi
 
 # Create ~/.claude directory if needed
