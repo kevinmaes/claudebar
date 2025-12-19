@@ -85,6 +85,24 @@ sudo dnf install jq
   </tr>
 </table>
 
+## Configuration
+
+Set the display mode via environment variable:
+
+```bash
+export CLAUDEBAR_MODE=icon   # Default - emoji icons
+export CLAUDEBAR_MODE=label  # Text labels
+export CLAUDEBAR_MODE=none   # Minimal output
+```
+
+| Mode | Example |
+|------|---------|
+| `icon` | `📂 parent/current \| 🌿 main \| 📄 S: 0 \| U: 2 \| A: 1` |
+| `label` | `DIR: parent/current \| BRANCH: main \| STAGED: 0 \| UNSTAGED: 2 \| ADDED: 1` |
+| `none` | `parent/current \| main \| S: 0 \| U: 2 \| A: 1` |
+
+Add the export to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) to persist the setting.
+
 ## Customization
 
 After installation, edit `~/.claude/statusline.sh` to customize the statusline.
