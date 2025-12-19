@@ -112,11 +112,10 @@ fi
 
 # Context window visualization
 context_size=$(echo "$input" | jq -r '.context_window.context_window_size // empty')
-usage=$(echo "$input" | jq -r '.context_window.current_usage // empty')
 
-if [ -n "$context_size" ] && [ "$usage" != "" ] && [ "$usage" != "null" ]; then
-    # Calculate total tokens used (input + cache tokens)
-    current_tokens=$(echo "$input" | jq '.context_window.current_usage | (.input_tokens // 0) + (.cache_creation_input_tokens // 0) + (.cache_read_input_tokens // 0)')
+if [ -n "$context_size" ] && [ "$context_size" -gt 0 ] 2>/dev/null; then
+    # Calculate total tokens used
+    current_tokens=$(echo "$input" | jq '.context_window | (.total_input_tokens // 0) + (.total_output_tokens // 0)')
     percent=$((current_tokens * 100 / context_size))
 
     # Color based on usage threshold
