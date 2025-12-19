@@ -12,6 +12,12 @@ A bash statusline for Claude Code.
 curl -fsSL https://raw.githubusercontent.com/kevinmaes/claudebar/main/install.sh | bash
 ```
 
+## Update
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/kevinmaes/claudebar/main/update.sh | bash
+```
+
 ## Uninstall
 
 ```bash

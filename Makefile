@@ -1,4 +1,4 @@
-.PHONY: lint test install uninstall
+.PHONY: lint test install update uninstall
 
 lint:
 	shellcheck *.sh
@@ -8,6 +8,9 @@ test:
 
 install:
 	./install.sh
+
+update:
+	./update.sh
 
 uninstall:
 	./uninstall.sh
