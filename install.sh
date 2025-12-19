@@ -66,6 +66,33 @@ fi
 echo "Downloading statusline.sh..."
 curl -fsSL "$RAW_URL" -o "$STATUSLINE_SCRIPT"
 
+# Ask for display mode preference
+echo ""
+echo "Choose display mode:"
+echo "  1) icon  - Emoji icons (default)"
+echo "  2) label - Text labels"
+echo "  3) none  - Minimal output"
+echo ""
+read -p "Enter choice [1-3]: " -n 1 -r < /dev/tty
+echo ""
+
+case "$REPLY" in
+    2)
+        MODE="label"
+        ;;
+    3)
+        MODE="none"
+        ;;
+    *)
+        MODE="icon"
+        ;;
+esac
+
+# Update the mode in the script
+sed -i.bak "s/MODE=\"\${CLAUDEBAR_MODE:-icon}\"/MODE=\"$MODE\"/" "$STATUSLINE_SCRIPT"
+rm -f "$STATUSLINE_SCRIPT.bak"
+echo "Display mode set to: $MODE"
+
 # Set executable permissions
 chmod +x "$STATUSLINE_SCRIPT"
 echo "Set executable permissions on statusline.sh"
@@ -87,7 +114,17 @@ echo ""
 echo "claudebar statusline installed successfully!"
 echo ""
 echo "Restart Claude Code to see your new statusline:"
-echo "  📂 parent/current | 🌿 branch | 📄 S: 0 | U: 0 | A: 0"
+case "$MODE" in
+    label)
+        echo "  DIR: parent/current | BRANCH: main | STAGED: 0 | UNSTAGED: 0 | ADDED: 0"
+        ;;
+    none)
+        echo "  parent/current | main | S: 0 | U: 0 | A: 0"
+        ;;
+    *)
+        echo "  📂 parent/current | 🌿 branch | 📄 S: 0 | U: 0 | A: 0"
+        ;;
+esac
 echo ""
 echo "To uninstall:"
 echo "  curl -fsSL https://kevinmaes.github.io/claudebar/uninstall.sh | bash"
