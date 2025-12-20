@@ -93,13 +93,13 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
         git_status=$(git -c core.useBuiltinFSMonitor=false status --porcelain 2>/dev/null)
 
         # Count staged files (added to index)
-        staged=$(echo "$git_status" | grep "^[MADRC]" | wc -l | tr -d ' ')
+        staged=$(echo "$git_status" | grep -c "^[MADRC]" || true)
 
         # Count unstaged files (modified but not staged)
-        unstaged=$(echo "$git_status" | grep "^.[MD]" | wc -l | tr -d ' ')
+        unstaged=$(echo "$git_status" | grep -c "^.[MD]" || true)
 
         # Count untracked/added (new) files
-        added=$(echo "$git_status" | grep "^??" | wc -l | tr -d ' ')
+        added=$(echo "$git_status" | grep -c "^??" || true)
 
         # Show counts in S: U: A: format with file icon
         # Colors: Green=staged (ready), Yellow=unstaged (modified), Red=untracked (new)
