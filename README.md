@@ -140,8 +140,8 @@ sudo apt install bats shellcheck jq
 | Command | Description |
 |---------|-------------|
 | `make lint` | Run shellcheck on all scripts |
-| `make test` | Quick manual test with sample JSON |
-| `make test-bats` | Run full BATS test suite |
+| `make test` | Run full BATS test suite |
+| `make preview` | Quick preview with sample JSON |
 | `make install` | Run install.sh locally |
 | `make update` | Run update.sh locally |
 | `make uninstall` | Run uninstall.sh locally |
@@ -150,7 +150,7 @@ sudo apt install bats shellcheck jq
 
 ```bash
 # Run all tests
-make test-bats
+make test
 
 # Run specific test file
 bats tests/statusline.bats

@@ -28,7 +28,7 @@ jobs:
           make lint
 
       - name: Run BATS tests
-        run: make test-bats
+        run: make test
 
   test-macos:
     runs-on: macos-latest
@@ -49,4 +49,4 @@ jobs:
           make lint
 
       - name: Run BATS tests
-        run: make test-bats
+        run: make test
