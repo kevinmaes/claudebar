@@ -102,10 +102,11 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
         added=$(echo "$git_status" | grep "^??" | wc -l | tr -d ' ')
 
         # Show counts in S: U: A: format with file icon
+        # Colors: Green=staged (ready), Yellow=unstaged (modified), Red=untracked (new)
         if [ -n "$ICON_FILES" ]; then
-            status="$status | ${ICON_FILES} ${LABEL_STAGED} $staged | ${LABEL_UNSTAGED} $unstaged | ${LABEL_ADDED} $added"
+            status="$status | ${ICON_FILES} ${GREEN}${LABEL_STAGED} $staged${RESET} | ${YELLOW}${LABEL_UNSTAGED} $unstaged${RESET} | ${RED}${LABEL_ADDED} $added${RESET}"
         else
-            status="$status | ${LABEL_STAGED} $staged | ${LABEL_UNSTAGED} $unstaged | ${LABEL_ADDED} $added"
+            status="$status | ${GREEN}${LABEL_STAGED} $staged${RESET} | ${YELLOW}${LABEL_UNSTAGED} $unstaged${RESET} | ${RED}${LABEL_ADDED} $added${RESET}"
         fi
     fi
 fi
