@@ -1,0 +1,256 @@
+#!/usr/bin/env bats
+
+# Tests for statusline.sh
+
+load 'test_helper/common'
+
+setup() {
+    PROJECT_ROOT="$(project_root)"
+    STATUSLINE="$PROJECT_ROOT/statusline.sh"
+}
+
+teardown() {
+    if [ -n "$TEST_REPO" ]; then
+        cleanup_dir "$TEST_REPO"
+    fi
+    if [ -n "$TEST_DIR" ]; then
+        cleanup_dir "$TEST_DIR"
+    fi
+}
+
+# =============================================================================
+# Path Display Tests
+# =============================================================================
+
+@test "displays short path (parent/current)" {
+    TEST_REPO=$(setup_git_repo)
+
+    result=$(mock_input_minimal "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+
+    # Should contain the last two path components
+    parent=$(basename "$(dirname "$TEST_REPO")")
+    current=$(basename "$TEST_REPO")
+    [[ "$result" == *"$parent/$current"* ]]
+}
+
+# =============================================================================
+# Git Branch Detection Tests
+# =============================================================================
+
+@test "displays git branch name" {
+    TEST_REPO=$(setup_git_repo)
+    # Create initial commit so we have a branch
+    touch "$TEST_REPO/file.txt"
+    git -C "$TEST_REPO" add file.txt
+    git -C "$TEST_REPO" commit -m "initial" --quiet
+
+    result=$(mock_input_minimal "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+
+    [[ "$result" == *"main"* ]] || [[ "$result" == *"master"* ]]
+}
+
+@test "displays custom branch name" {
+    TEST_REPO=$(setup_git_repo)
+    touch "$TEST_REPO/file.txt"
+    git -C "$TEST_REPO" add file.txt
+    git -C "$TEST_REPO" commit -m "initial" --quiet
+    git -C "$TEST_REPO" checkout -b feature/test-branch --quiet
+
+    result=$(mock_input_minimal "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+
+    [[ "$result" == *"feature/test-branch"* ]]
+}
+
+# =============================================================================
+# Git Status Count Tests
+# =============================================================================
+
+@test "shows staged file count" {
+    TEST_REPO=$(setup_git_repo)
+    touch "$TEST_REPO/file.txt"
+    git -C "$TEST_REPO" add file.txt
+    git -C "$TEST_REPO" commit -m "initial" --quiet
+
+    # Stage a new file
+    echo "new content" > "$TEST_REPO/staged.txt"
+    git -C "$TEST_REPO" add staged.txt
+
+    result=$(mock_input_minimal "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+
+    [[ "$result" == *"S: 1"* ]]
+}
+
+@test "shows unstaged file count" {
+    TEST_REPO=$(setup_git_repo)
+    touch "$TEST_REPO/file.txt"
+    git -C "$TEST_REPO" add file.txt
+    git -C "$TEST_REPO" commit -m "initial" --quiet
+
+    # Modify tracked file without staging
+    echo "modified" >> "$TEST_REPO/file.txt"
+
+    result=$(mock_input_minimal "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+
+    [[ "$result" == *"U: 1"* ]]
+}
+
+@test "shows untracked/added file count" {
+    TEST_REPO=$(setup_git_repo)
+    touch "$TEST_REPO/file.txt"
+    git -C "$TEST_REPO" add file.txt
+    git -C "$TEST_REPO" commit -m "initial" --quiet
+
+    # Create untracked files
+    touch "$TEST_REPO/untracked1.txt"
+    touch "$TEST_REPO/untracked2.txt"
+
+    result=$(mock_input_minimal "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+
+    [[ "$result" == *"A: 2"* ]]
+}
+
+@test "shows zero counts for clean repo" {
+    TEST_REPO=$(setup_git_repo)
+    touch "$TEST_REPO/file.txt"
+    git -C "$TEST_REPO" add file.txt
+    git -C "$TEST_REPO" commit -m "initial" --quiet
+
+    result=$(mock_input_minimal "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+
+    [[ "$result" == *"S: 0"* ]]
+    [[ "$result" == *"U: 0"* ]]
+    [[ "$result" == *"A: 0"* ]]
+}
+
+# =============================================================================
+# Display Mode Tests
+# =============================================================================
+
+@test "icon mode shows emoji icons" {
+    TEST_REPO=$(setup_git_repo)
+    touch "$TEST_REPO/file.txt"
+    git -C "$TEST_REPO" add file.txt
+    git -C "$TEST_REPO" commit -m "initial" --quiet
+
+    export CLAUDEBAR_MODE=icon
+    result=$(mock_input "$TEST_REPO" | "$STATUSLINE")
+    unset CLAUDEBAR_MODE
+
+    [[ "$result" == *"📂"* ]]
+    [[ "$result" == *"🌿"* ]]
+    [[ "$result" == *"📄"* ]]
+    [[ "$result" == *"🧠"* ]]
+}
+
+@test "label mode shows text labels" {
+    TEST_REPO=$(setup_git_repo)
+    touch "$TEST_REPO/file.txt"
+    git -C "$TEST_REPO" add file.txt
+    git -C "$TEST_REPO" commit -m "initial" --quiet
+
+    export CLAUDEBAR_MODE=label
+    result=$(mock_input "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+    unset CLAUDEBAR_MODE
+
+    [[ "$result" == *"DIR:"* ]]
+    [[ "$result" == *"BRANCH:"* ]]
+    [[ "$result" == *"STAGED:"* ]]
+    [[ "$result" == *"Context:"* ]]
+}
+
+@test "none mode shows minimal output" {
+    TEST_REPO=$(setup_git_repo)
+    touch "$TEST_REPO/file.txt"
+    git -C "$TEST_REPO" add file.txt
+    git -C "$TEST_REPO" commit -m "initial" --quiet
+
+    export CLAUDEBAR_MODE=none
+    result=$(mock_input "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+    unset CLAUDEBAR_MODE
+
+    # Should NOT contain emojis or full labels
+    [[ "$result" != *"📂"* ]]
+    [[ "$result" != *"DIR:"* ]]
+    [[ "$result" != *"BRANCH:"* ]]
+    # Should still have S: U: A:
+    [[ "$result" == *"S:"* ]]
+}
+
+# =============================================================================
+# Context Window Tests
+# =============================================================================
+
+@test "displays context window usage" {
+    TEST_REPO=$(setup_git_repo)
+
+    # 84k tokens out of 200k = 42%
+    result=$(mock_input "$TEST_REPO" 200000 40000 44000 | "$STATUSLINE" | strip_colors)
+
+    [[ "$result" == *"42%"* ]]
+    [[ "$result" == *"84k/200k"* ]]
+}
+
+@test "context window green when under 50%" {
+    TEST_REPO=$(setup_git_repo)
+
+    # 20k tokens out of 200k = 10%
+    result=$(mock_input "$TEST_REPO" 200000 10000 10000 | "$STATUSLINE")
+
+    # Should contain green color code
+    [[ "$result" == *$'\033[32m'* ]]
+}
+
+@test "context window yellow when 50-79%" {
+    TEST_REPO=$(setup_git_repo)
+
+    # 120k tokens out of 200k = 60%
+    result=$(mock_input "$TEST_REPO" 200000 60000 60000 | "$STATUSLINE")
+
+    # Should contain yellow color code
+    [[ "$result" == *$'\033[33m'* ]]
+}
+
+@test "context window red when 80%+" {
+    TEST_REPO=$(setup_git_repo)
+
+    # 180k tokens out of 200k = 90%
+    result=$(mock_input "$TEST_REPO" 200000 90000 90000 | "$STATUSLINE")
+
+    # Should contain red color code
+    [[ "$result" == *$'\033[31m'* ]]
+}
+
+# =============================================================================
+# Edge Case Tests
+# =============================================================================
+
+@test "handles non-git directory gracefully" {
+    TEST_DIR=$(setup_temp_dir)
+
+    result=$(mock_input_minimal "$TEST_DIR" | "$STATUSLINE" | strip_colors)
+
+    # Should show path but no git info
+    current=$(basename "$TEST_DIR")
+    [[ "$result" == *"$current"* ]]
+    # Should NOT show branch or status counts
+    [[ "$result" != *"S:"* ]]
+}
+
+@test "handles missing context window data" {
+    TEST_REPO=$(setup_git_repo)
+
+    result=$(mock_input_minimal "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+
+    # Should not contain context percentage
+    [[ "$result" != *"%"* ]]
+}
+
+@test "handles empty git repo (no commits)" {
+    TEST_REPO=$(setup_git_repo)
+
+    result=$(mock_input_minimal "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+
+    # Should show path but may not show branch (no commits yet)
+    current=$(basename "$TEST_REPO")
+    [[ "$result" == *"$current"* ]]
+}
