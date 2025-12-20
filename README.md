@@ -118,3 +118,62 @@ The installer:
 1. Downloads `statusline.sh` to `~/.claude/`
 2. Updates `~/.claude/settings.json` with the statusline command
 3. Claude Code reads JSON workspace data and pipes it to the script
+
+## Development
+
+### Requirements
+
+- `bats` - Bash Automated Testing System
+- `shellcheck` - Shell script linter
+- `jq` - JSON processor
+
+```bash
+# macOS
+brew install bats-core shellcheck jq
+
+# Ubuntu/Debian
+sudo apt install bats shellcheck jq
+```
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `make lint` | Run shellcheck on all scripts |
+| `make test` | Quick manual test with sample JSON |
+| `make test-bats` | Run full BATS test suite |
+
+### Running tests
+
+```bash
+# Run all tests
+make test-bats
+
+# Run specific test file
+bats tests/statusline.bats
+
+# Run with verbose output
+bats --verbose-run tests/
+```
+
+### VS Code Extensions
+
+Recommended extensions for working with this codebase:
+
+| Extension | ID | Purpose |
+|-----------|-----|---------|
+| ShellCheck | `timonwong.shellcheck` | Linting for shell scripts |
+| Bash IDE | `mads-hartmann.bash-ide-vscode` | Syntax highlighting, intellisense for `.sh` files |
+| Bats | `jetmartin.bats` | Syntax highlighting for `.bats` test files |
+| YAML | `redhat.vscode-yaml` | GitHub workflow files |
+
+Install all at once:
+
+```bash
+code --install-extension timonwong.shellcheck \
+     --install-extension mads-hartmann.bash-ide-vscode \
+     --install-extension jetmartin.bats \
+     --install-extension redhat.vscode-yaml
+```
+
+**Note:** The ShellCheck extension requires the `shellcheck` binary (see [Requirements](#requirements) above).
