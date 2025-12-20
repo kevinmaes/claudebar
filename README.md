@@ -34,7 +34,10 @@ curl -fsSL https://kevinmaes.github.io/claudebar/uninstall.sh | bash
 
 ## Requirements
 
-- `jq` - JSON processor
+- `jq` - JSON processor (installer will offer to install if missing)
+
+<details>
+<summary>Manual installation</summary>
 
 ```bash
 # macOS
@@ -46,6 +49,7 @@ sudo apt install jq
 # Fedora
 sudo dnf install jq
 ```
+</details>
 
 ## What it displays
 
