@@ -3,7 +3,9 @@
 # Claude Code Statusline - claudebar
 # https://github.com/kevinmaes/claudebar
 #
-# Displays: 📂 parent/current | 🌿 main | 📄 S: 0 | U: 2 | A: 1 | 🧠 42% (84k/200k)
+# Displays (two lines):
+#   Line 1: 📂 parent/current | 🌿 main | 📄 S: 0 | U: 2 | A: 1
+#   Line 2: 🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (84k/200k)
 #
 # Configuration:
 #   CLAUDEBAR_MODE: icon (default), label, or none
@@ -25,6 +27,7 @@ case "$MODE" in
         ICON_DIR="DIR:"
         ICON_WORKTREE="TREE"
         ICON_BRANCH="BRANCH:"
+        ICON_MODEL="MODEL:"
         ICON_FILES=""
         LABEL_STAGED="STAGED:"
         LABEL_UNSTAGED="UNSTAGED:"
@@ -34,6 +37,7 @@ case "$MODE" in
         ICON_DIR=""
         ICON_WORKTREE="[wt]"
         ICON_BRANCH=""
+        ICON_MODEL=""
         ICON_FILES=""
         LABEL_STAGED="S:"
         LABEL_UNSTAGED="U:"
@@ -43,6 +47,7 @@ case "$MODE" in
         ICON_DIR="📂"
         ICON_WORKTREE="🌳"
         ICON_BRANCH="🌿"
+        ICON_MODEL="🤖"
         ICON_FILES="📄"
         LABEL_STAGED="S:"
         LABEL_UNSTAGED="U:"
@@ -55,6 +60,9 @@ input=$(cat)
 
 # Get current working directory from input
 cwd=$(echo "$input" | jq -r '.workspace.current_dir')
+
+# Get model display name
+model_name=$(echo "$input" | jq -r '.model.display_name // empty')
 
 # Change to the directory
 cd "$cwd" 2>/dev/null || exit 0
@@ -111,6 +119,18 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
     fi
 fi
 
+# Second line: Claude Code specific info (model + context)
+line2=""
+
+# Model display
+if [ -n "$model_name" ]; then
+    if [ -n "$ICON_MODEL" ]; then
+        line2="${ICON_MODEL} ${model_name}"
+    else
+        line2="${model_name}"
+    fi
+fi
+
 # Context window visualization
 context_size=$(echo "$input" | jq -r '.context_window.context_window_size // empty')
 
@@ -132,14 +152,34 @@ if [ -n "$context_size" ] && [ "$context_size" -gt 0 ] 2>/dev/null; then
     current_k=$((current_tokens / 1000))
     total_k=$((context_size / 1000))
 
-    # Format: 42% (84k/200k)
-    if [ "$MODE" = "label" ]; then
-        status="$status | Context: ${CTX_COLOR}${percent}%${RESET} (${current_k}k/${total_k}k)"
-    elif [ "$MODE" = "none" ]; then
-        status="$status | ${CTX_COLOR}${percent}%${RESET} (${current_k}k/${total_k}k)"
+    # Build progress bar (5 segments)
+    bar_width=5
+    filled=$((percent * bar_width / 100))
+    empty=$((bar_width - filled))
+    bar="${CTX_COLOR}"
+    for ((i=0; i<filled; i++)); do bar+="▮"; done
+    bar+="${RESET}"
+    for ((i=0; i<empty; i++)); do bar+="▯"; done
+
+    # Format: 42% ▮▮▯▯▯ (84k/200k)
+    if [ -n "$line2" ]; then
+        separator=" | "
     else
-        status="$status | 🧠 ${CTX_COLOR}${percent}%${RESET} (${current_k}k/${total_k}k)"
+        separator=""
     fi
+
+    if [ "$MODE" = "label" ]; then
+        line2="${line2}${separator}Context: ${CTX_COLOR}${percent}%${RESET} ${bar} (${current_k}k/${total_k}k)"
+    elif [ "$MODE" = "none" ]; then
+        line2="${line2}${separator}${CTX_COLOR}${percent}%${RESET} ${bar} (${current_k}k/${total_k}k)"
+    else
+        line2="${line2}${separator}🧠 ${CTX_COLOR}${percent}%${RESET} ${bar} (${current_k}k/${total_k}k)"
+    fi
+fi
+
+# Append second line if it has content
+if [ -n "$line2" ]; then
+    status="$status\n$line2"
 fi
 
 echo -e "$status"
