@@ -1,0 +1,52 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install BATS
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Run shellcheck
+        run: |
+          sudo apt-get install -y shellcheck
+          make lint
+
+      - name: Run BATS tests
+        run: make test-bats
+
+  test-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install BATS
+        run: brew install bats-core
+
+      - name: Install jq
+        run: brew install jq
+
+      - name: Run shellcheck
+        run: |
+          brew install shellcheck
+          make lint
+
+      - name: Run BATS tests
+        run: make test-bats
