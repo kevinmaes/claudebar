@@ -6,8 +6,7 @@
   "type": "module",
   "scripts": {
     "changeset": "changeset",
-    "version": "changeset version",
-    "release": "changeset tag"
+    "version": "changeset version"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.7"
