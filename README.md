@@ -142,6 +142,9 @@ sudo apt install bats shellcheck jq
 | `make lint` | Run shellcheck on all scripts |
 | `make test` | Quick manual test with sample JSON |
 | `make test-bats` | Run full BATS test suite |
+| `make install` | Run install.sh locally |
+| `make update` | Run update.sh locally |
+| `make uninstall` | Run uninstall.sh locally |
 
 ### Running tests
 
