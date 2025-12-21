@@ -1,5 +1,15 @@
 # claudebar
 
+## 0.3.1
+
+### Patch Changes
+
+- 5d1ba26: Add open source governance files
+
+  - Add MIT LICENSE
+  - Add CONTRIBUTING.md with development guidelines
+  - Add README badges (License, Release, CI, Contributing, Changelog)
+
 ## 0.3.0
 
 ### Minor Changes
