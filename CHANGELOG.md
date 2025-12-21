@@ -1,5 +1,11 @@
 # claudebar
 
+## 0.2.1
+
+### Patch Changes
+
+- 5a90f76: Fix release workflow to automatically create git tags and GitHub releases after Version Packages PR merges
+
 ## 0.2.0
 
 ### Minor Changes
