@@ -254,3 +254,67 @@ teardown() {
     current=$(basename "$TEST_REPO")
     [[ "$result" == *"$current"* ]]
 }
+
+# =============================================================================
+# Version and Update Tests
+# =============================================================================
+
+@test "--version flag outputs version" {
+    run "$STATUSLINE" --version
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == "claudebar v"* ]]
+}
+
+@test "-v flag outputs version" {
+    run "$STATUSLINE" -v
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == "claudebar v"* ]]
+}
+
+@test "--check-update shows current version" {
+    run "$STATUSLINE" --check-update
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"claudebar v"* ]]
+}
+
+@test "statusline shows version in second line" {
+    TEST_REPO=$(setup_git_repo)
+
+    result=$(mock_input "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+
+    [[ "$result" == *"claudebar v"* ]]
+}
+
+@test "version comparison: newer version detected" {
+    # Define the function inline (same logic as in statusline.sh)
+    version_gt() {
+        [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" != "$1" ]
+    }
+
+    version_gt "1.0.0" "0.9.0" && result="greater" || result="not_greater"
+    [ "$result" = "greater" ]
+
+    version_gt "0.2.2" "0.2.1" && result="greater" || result="not_greater"
+    [ "$result" = "greater" ]
+}
+
+@test "version comparison: same version not detected as newer" {
+    version_gt() {
+        [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" != "$1" ]
+    }
+
+    version_gt "0.2.1" "0.2.1" && result="greater" || result="not_greater"
+    [ "$result" = "not_greater" ]
+}
+
+@test "version comparison: older version not detected as newer" {
+    version_gt() {
+        [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" != "$1" ]
+    }
+
+    version_gt "0.1.0" "0.2.0" && result="greater" || result="not_greater"
+    [ "$result" = "not_greater" ]
+}

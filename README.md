@@ -3,7 +3,8 @@
 A bash statusline for Claude Code.
 
 ```
-📂 parent/current | 🌿 main | 📄 S: 0 | U: 2 | A: 1 | 🧠 42% (84k/200k)
+📂 parent/current | 🌿 main | 📄 S: 0 | U: 2 | A: 1
+claudebar v0.2.1 | 🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (84k/200k)
 ```
 
 ## Install
@@ -24,6 +25,26 @@ curl -fsSL https://raw.githubusercontent.com/kevinmaes/claudebar/main/install.sh
 
 ```bash
 curl -fsSL https://kevinmaes.github.io/claudebar/update.sh | bash
+```
+
+Or use the built-in update command:
+
+```bash
+~/.claude/statusline.sh --update
+```
+
+### Update Notification
+
+The statusline shows a yellow `↑` indicator when a newer version is available:
+
+```
+claudebar v0.2.1 ↑ | 🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (84k/200k)
+```
+
+Version checks are cached for 24 hours. To manually check:
+
+```bash
+~/.claude/statusline.sh --check-update
 ```
 
 ## Uninstall
@@ -92,6 +113,11 @@ sudo dnf install jq
     <td></td>
     <td>Context window usage (color-coded: green &lt;50%, yellow 50-80%, red &gt;80%)</td>
   </tr>
+  <tr>
+    <td>↑</td>
+    <td></td>
+    <td>Update available (yellow, shown after version when newer release exists)</td>
+  </tr>
 </table>
 
 ## Configuration
@@ -111,6 +137,14 @@ export CLAUDEBAR_MODE=none   # Minimal output
 | `none` | `parent/current \| main \| S: 0 \| U: 2 \| A: 1` |
 
 Add the export to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) to persist the setting.
+
+## CLI Flags
+
+| Flag | Description |
+|------|-------------|
+| `--version`, `-v` | Show version and exit |
+| `--check-update` | Check for available updates |
+| `--update` | Download and install latest version |
 
 ## Customization
 

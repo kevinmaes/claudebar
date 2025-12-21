@@ -5,11 +5,23 @@
 #
 # Displays (two lines):
 #   Line 1: 📂 parent/current | 🌿 main | 📄 S: 0 | U: 2 | A: 1
-#   Line 2: 🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (84k/200k)
+#   Line 2: claudebar v0.2.1 | 🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (84k/200k)
 #
 # Configuration:
 #   CLAUDEBAR_MODE: icon (default), label, or none
 #   Set via: export CLAUDEBAR_MODE=label
+#
+# CLI flags:
+#   --version, -v    Show version and exit
+#   --check-update   Check for updates (bypass cache)
+#   --update         Download and install latest version
+
+# Version (updated by changesets)
+CLAUDEBAR_VERSION="0.2.1"
+
+# Cache settings
+CACHE_FILE="$HOME/.claude/.claudebar-version-cache"
+CACHE_TTL=86400  # 24 hours in seconds
 
 # ANSI color codes
 BLUE='\033[34m'
@@ -52,6 +64,70 @@ case "$MODE" in
         LABEL_STAGED="S:"
         LABEL_UNSTAGED="U:"
         LABEL_ADDED="A:"
+        ;;
+esac
+
+# Compare semver versions: returns 0 if $1 > $2
+version_gt() {
+    [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" != "$1" ]
+}
+
+# Check for updates with caching
+check_for_updates() {
+    local now remote_version cached_time cached_version
+    now=$(date +%s)
+
+    # Read cache if exists
+    if [ -f "$CACHE_FILE" ]; then
+        cached_time=$(cut -d'|' -f1 "$CACHE_FILE" 2>/dev/null)
+        cached_version=$(cut -d'|' -f2 "$CACHE_FILE" 2>/dev/null)
+
+        # Use cache if fresh (unless force check)
+        if [ "${1:-}" != "force" ] && [ -n "$cached_time" ] && [ $((now - cached_time)) -lt $CACHE_TTL ]; then
+            echo "$cached_version"
+            return
+        fi
+    fi
+
+    # Fetch remote version (timeout 2s, silent)
+    remote_version=$(curl -fsSL --connect-timeout 2 \
+        "https://raw.githubusercontent.com/kevinmaes/claudebar/main/package.json" 2>/dev/null \
+        | jq -r '.version // empty' 2>/dev/null)
+
+    # Update cache
+    if [ -n "$remote_version" ]; then
+        echo "${now}|${remote_version}" > "$CACHE_FILE" 2>/dev/null
+        echo "$remote_version"
+    elif [ -n "$cached_version" ]; then
+        echo "$cached_version"  # Use stale cache if fetch fails
+    fi
+}
+
+# Handle CLI flags before reading stdin
+case "${1:-}" in
+    --version|-v)
+        echo "claudebar v$CLAUDEBAR_VERSION"
+        exit 0
+        ;;
+    --check-update)
+        echo "claudebar v$CLAUDEBAR_VERSION"
+        remote_version=$(check_for_updates force)
+        if [ -n "$remote_version" ]; then
+            if version_gt "$remote_version" "$CLAUDEBAR_VERSION"; then
+                echo "Update available: v$remote_version"
+                echo "Run: claudebar --update"
+            else
+                echo "You're up to date!"
+            fi
+        else
+            echo "Could not check for updates (offline?)"
+        fi
+        exit 0
+        ;;
+    --update)
+        echo "Updating claudebar..."
+        curl -fsSL https://raw.githubusercontent.com/kevinmaes/claudebar/main/update.sh | bash
+        exit $?
         ;;
 esac
 
@@ -119,15 +195,23 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
     fi
 fi
 
-# Second line: Claude Code specific info (model + context)
+# Second line: Claude Code specific info (version + model + context)
 line2=""
+
+# Version with update indicator
+remote_version=$(check_for_updates 2>/dev/null)
+update_indicator=""
+if [ -n "$remote_version" ] && version_gt "$remote_version" "$CLAUDEBAR_VERSION"; then
+    update_indicator=" ${YELLOW}↑${RESET}"
+fi
+line2="claudebar v${CLAUDEBAR_VERSION}${update_indicator}"
 
 # Model display
 if [ -n "$model_name" ]; then
     if [ -n "$ICON_MODEL" ]; then
-        line2="${ICON_MODEL} ${model_name}"
+        line2="${line2} | ${ICON_MODEL} ${model_name}"
     else
-        line2="${model_name}"
+        line2="${line2} | ${model_name}"
     fi
 fi
 
