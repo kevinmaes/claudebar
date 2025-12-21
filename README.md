@@ -1,10 +1,16 @@
 # claudebar
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub release](https://img.shields.io/github/v/release/kevinmaes/claudebar)](https://github.com/kevinmaes/claudebar/releases)
+[![CI](https://github.com/kevinmaes/claudebar/actions/workflows/ci.yml/badge.svg)](https://github.com/kevinmaes/claudebar/actions/workflows/ci.yml)
+[![Contributing](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Changelog](https://img.shields.io/badge/changelog-Keep%20a%20Changelog-orange.svg)](CHANGELOG.md)
+
 A bash statusline for Claude Code.
 
 ```
 📂 parent/current | 🌿 main | 📄 S: 0 | U: 2 | A: 1
-claudebar v0.2.1 | 🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (84k/200k)
+claudebar v0.3.0 | 🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (84k/200k)
 ```
 
 ## Install
@@ -218,3 +224,11 @@ code --install-extension timonwong.shellcheck \
 ```
 
 **Note:** The ShellCheck extension requires the `shellcheck` binary (see [Requirements](#requirements) above).
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## License
+
+[MIT](LICENSE)
