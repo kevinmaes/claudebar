@@ -13,3 +13,6 @@ node_modules/
 
 # Debug
 *.log
+
+# Analysis documents (internal)
+competitor-analysis.md
