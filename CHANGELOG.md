@@ -1,5 +1,26 @@
 # claudebar
 
+## 0.4.0
+
+### Minor Changes
+
+- 590f066: feat: show worktree name separately from branch name
+
+  When in a git worktree, the statusline now displays the worktree directory name separately from the tracked branch name:
+
+  - Before: 🌳 🌿 feature-branch
+  - After: 🌳 worktree-dir | 🌿 feature-branch
+
+  This provides clearer semantic meaning:
+
+  - Worktree = WHERE you are (the directory/workspace)
+  - Branch = WHAT branch that worktree is tracking
+
+### Patch Changes
+
+- bc687b0: Add web fetch permission for npm registry and ignore analysis documents
+- 2b1fb03: Rename test.yml workflow to ci.yml (runs both linting and tests)
+
 ## 0.3.1
 
 ### Patch Changes
