@@ -13,6 +13,20 @@ A bash statusline for Claude Code.
 claudebar v0.3.0 | 🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (84k/200k)
 ```
 
+## Why claudebar?
+
+**Lightweight & Fast** - Pure bash with no runtime dependencies beyond `jq`. No Node.js required.
+
+**Install in Seconds** - One curl command and you're running. Built-in update checker notifies you of new releases with a simple `↑` indicator.
+
+**Git-First Design** - See your branch, staged files, unstaged changes, and untracked files at a glance. Includes worktree support for advanced workflows.
+
+**Visual Context Tracking** - Color-coded progress bars (▮▮▯▯▯) make it easy to monitor your context window usage. Green under 50%, yellow 50-80%, red above 80%.
+
+**Simple Configuration** - Three display modes via a single environment variable. No complex config files to maintain.
+
+**Hassle-Free Maintenance** - Built-in updater and uninstaller scripts. Keep your statusline current with one command.
+
 ## Install
 
 ```bash
