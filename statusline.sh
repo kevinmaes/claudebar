@@ -158,19 +158,26 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
     # Check if we're in a worktree (git-dir and git-common-dir differ)
     git_dir=$(git rev-parse --git-dir 2>/dev/null)
     git_common_dir=$(git rev-parse --git-common-dir 2>/dev/null)
-    is_worktree=""
-    if [ "$git_dir" != "$git_common_dir" ]; then
-        is_worktree="${ICON_WORKTREE} "
-    fi
 
     # Get current branch
     branch=$(git -c core.useBuiltinFSMonitor=false rev-parse --abbrev-ref HEAD 2>/dev/null)
 
     if [ -n "$branch" ]; then
+        # If in a worktree, show worktree name separately
+        if [ "$git_dir" != "$git_common_dir" ]; then
+            worktree_name=$(basename "$cwd")
+            if [ -n "$ICON_WORKTREE" ]; then
+                status="$status | ${ICON_WORKTREE} ${GREEN}${worktree_name}${RESET}"
+            else
+                status="$status | ${GREEN}${worktree_name}${RESET}"
+            fi
+        fi
+
+        # Show branch
         if [ -n "$ICON_BRANCH" ]; then
-            status="$status | ${is_worktree}${ICON_BRANCH} ${GREEN}${branch}${RESET}"
+            status="$status | ${ICON_BRANCH} ${GREEN}${branch}${RESET}"
         else
-            status="$status | ${is_worktree}${GREEN}${branch}${RESET}"
+            status="$status | ${GREEN}${branch}${RESET}"
         fi
 
         # Get git status counts (skip optional locks for performance)
