@@ -61,9 +61,9 @@ teardown() {
     # Create existing settings
     echo '{"existingKey": "existingValue"}' > "$HOME/.claude/settings.json"
 
-    # Simulate install merge behavior
+    # Simulate install merge behavior (new * operator preserves nested settings)
     tmp_file=$(mktemp)
-    jq '. + {"statusLine": {"type": "command", "command": "/bin/bash ~/.claude/statusline.sh"}}' "$HOME/.claude/settings.json" > "$tmp_file"
+    jq '.statusLine = ((.statusLine // {}) * {"type": "command", "command": "/bin/bash ~/.claude/statusline.sh"})' "$HOME/.claude/settings.json" > "$tmp_file"
     mv "$tmp_file" "$HOME/.claude/settings.json"
 
     # Verify both configs exist
@@ -72,6 +72,24 @@ teardown() {
 
     result=$(jq -r '.statusLine.type' "$HOME/.claude/settings.json")
     [ "$result" = "command" ]
+}
+
+@test "install preserves existing statusLine settings like padding" {
+    # Create existing claudebar config with padding
+    echo '{"statusLine": {"type": "command", "command": "/bin/bash ~/.claude/statusline.sh", "padding": 0}}' > "$HOME/.claude/settings.json"
+
+    # Simulate install merge behavior (should preserve padding)
+    tmp_file=$(mktemp)
+    jq '.statusLine = ((.statusLine // {}) * {"type": "command", "command": "/bin/bash ~/.claude/statusline.sh"})' "$HOME/.claude/settings.json" > "$tmp_file"
+    mv "$tmp_file" "$HOME/.claude/settings.json"
+
+    # Verify padding is preserved
+    result=$(jq -r '.statusLine.padding' "$HOME/.claude/settings.json")
+    [ "$result" = "0" ]
+
+    # Verify command is still correct
+    result=$(jq -r '.statusLine.command' "$HOME/.claude/settings.json")
+    [ "$result" = "/bin/bash ~/.claude/statusline.sh" ]
 }
 
 # =============================================================================
