@@ -105,9 +105,26 @@ if [ ! -f "$SETTINGS_FILE" ]; then
     # Create new settings file
     echo '{"statusLine": {"type": "command", "command": "/bin/bash ~/.claude/statusline.sh"}}' | jq '.' > "$SETTINGS_FILE"
 else
-    # Merge statusLine config while preserving existing settings
+    # Check for existing non-claudebar statusLine configuration
+    existing_command=$(jq -r '.statusLine.command // ""' "$SETTINGS_FILE")
+    if [ -n "$existing_command" ] && \
+       [[ "$existing_command" != *"claudebar"* ]] && \
+       [[ "$existing_command" != *".claude/statusline.sh"* ]]; then
+        echo ""
+        echo "Warning: An existing statusLine configuration was found:"
+        echo "  command: $existing_command"
+        echo ""
+        read -p "Overwrite with claudebar? [y/N] " -n 1 -r < /dev/tty
+        echo ""
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "Installation cancelled. Your existing statusLine was preserved."
+            exit 0
+        fi
+    fi
+
+    # Merge statusLine config while preserving existing settings like padding
     tmp_file=$(mktemp)
-    jq '. + {"statusLine": {"type": "command", "command": "/bin/bash ~/.claude/statusline.sh"}}' "$SETTINGS_FILE" > "$tmp_file"
+    jq '.statusLine = ((.statusLine // {}) * {"type": "command", "command": "/bin/bash ~/.claude/statusline.sh"})' "$SETTINGS_FILE" > "$tmp_file"
     mv "$tmp_file" "$SETTINGS_FILE"
 fi
 
