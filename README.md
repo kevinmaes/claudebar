@@ -67,6 +67,26 @@ Version checks are cached for 24 hours. To manually check:
 ~/.claude/statusline.sh --check-update
 ```
 
+## Testing Pre-release Features
+
+Install from the `dev` branch to test integrated features before the next release:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/kevinmaes/claudebar/dev/install-dev.sh | bash
+```
+
+Update to the latest dev version:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/kevinmaes/claudebar/dev/update-dev.sh | bash
+```
+
+To switch back to stable:
+
+```bash
+curl -fsSL https://kevinmaes.github.io/claudebar/install.sh | bash
+```
+
 ## Uninstall
 
 ```bash

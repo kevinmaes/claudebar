@@ -1,8 +1,9 @@
+# Creates a "Version Packages" PR when changesets are pushed to dev
 name: Release
 
 on:
   push:
-    branches: [main]
+    branches: [dev]
   workflow_dispatch:
 
 concurrency:
@@ -10,8 +11,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  release:
-    name: Release
+  version:
+    name: Version Packages
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -34,31 +35,10 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Create Release Pull Request
-        id: changesets
+      - name: Create Version PR
         uses: changesets/action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create and Push Tag
-        if: steps.changesets.outputs.hasChangesets == 'false'
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          TAG="v$VERSION"
-          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
-            git tag "$TAG"
-            git push origin "$TAG"
-          fi
-
-      - name: Create GitHub Release
-        if: steps.changesets.outputs.hasChangesets == 'false'
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          TAG="v$VERSION"
-          if ! /usr/bin/gh release view "$TAG" >/dev/null 2>&1; then
-            /usr/bin/gh release create "$TAG" \
-              --title "$TAG" \
-              --notes "See [CHANGELOG.md](./CHANGELOG.md) for details."
-          fi
+        with:
+          title: 'Version Packages'
+          commit: 'Version Packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
