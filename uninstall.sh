@@ -21,18 +21,35 @@ else
     echo "statusline.sh not found, skipping..."
 fi
 
-# Remove statusLine key from settings.json
+# Remove statusLine key from settings.json (only if it's claudebar)
 if [ -f "$SETTINGS_FILE" ]; then
     if command -v jq &> /dev/null; then
-        tmp_file=$(mktemp)
-        jq 'del(.statusLine)' "$SETTINGS_FILE" > "$tmp_file"
-        mv "$tmp_file" "$SETTINGS_FILE"
-        echo "Removed statusLine config from settings.json"
+        existing_command=$(jq -r '.statusLine.command // ""' "$SETTINGS_FILE")
+
+        # Only remove if it's a claudebar statusLine
+        if [[ "$existing_command" == *"claudebar"* ]] || [[ "$existing_command" == *".claude/statusline.sh"* ]]; then
+            tmp_file=$(mktemp)
+            jq 'del(.statusLine)' "$SETTINGS_FILE" > "$tmp_file"
+            mv "$tmp_file" "$SETTINGS_FILE"
+            echo "Removed statusLine config from settings.json"
+        elif [ -n "$existing_command" ]; then
+            echo "Skipping settings.json: statusLine is not claudebar"
+            echo "  Current command: $existing_command"
+        else
+            echo "No statusLine config found in settings.json"
+        fi
     else
         echo "Warning: jq not found. Please manually remove the statusLine key from $SETTINGS_FILE"
     fi
 else
     echo "settings.json not found, skipping..."
+fi
+
+# Remove version cache file
+CACHE_FILE="$CLAUDE_DIR/.claudebar-version-cache"
+if [ -f "$CACHE_FILE" ]; then
+    rm "$CACHE_FILE"
+    echo "Removed version cache"
 fi
 
 echo ""
