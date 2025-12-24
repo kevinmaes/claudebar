@@ -90,9 +90,9 @@ teardown() {
     [ ! -f "$HOME/.claude/statusline.sh" ]
 }
 
-@test "uninstall removes statusLine from settings.json" {
-    # Setup installed state
-    echo '{"statusLine": {"type": "command"}, "otherSetting": true}' > "$HOME/.claude/settings.json"
+@test "uninstall removes statusLine from settings.json when it is claudebar" {
+    # Setup installed state with claudebar command
+    echo '{"statusLine": {"type": "command", "command": "/bin/bash ~/.claude/statusline.sh"}, "otherSetting": true}' > "$HOME/.claude/settings.json"
 
     # Run uninstall
     "$PROJECT_ROOT/uninstall.sh"
@@ -104,6 +104,41 @@ teardown() {
     # Verify other settings preserved
     result=$(jq -r '.otherSetting' "$HOME/.claude/settings.json")
     [ "$result" = "true" ]
+}
+
+@test "uninstall skips statusLine when it is not claudebar" {
+    # Setup with a different statusLine (not claudebar)
+    echo '{"statusLine": {"type": "command", "command": "~/my-custom-statusline.sh"}, "otherSetting": true}' > "$HOME/.claude/settings.json"
+
+    # Run uninstall
+    run "$PROJECT_ROOT/uninstall.sh"
+
+    # Should succeed
+    [ "$status" -eq 0 ]
+
+    # Verify statusLine is NOT removed
+    result=$(jq 'has("statusLine")' "$HOME/.claude/settings.json")
+    [ "$result" = "true" ]
+
+    # Verify the command is unchanged
+    result=$(jq -r '.statusLine.command' "$HOME/.claude/settings.json")
+    [ "$result" = "~/my-custom-statusline.sh" ]
+
+    # Verify output mentions skipping
+    [[ "$output" == *"statusLine is not claudebar"* ]]
+}
+
+@test "uninstall removes version cache file" {
+    # Setup cache file
+    echo "1234567890|0.3.0" > "$HOME/.claude/.claudebar-version-cache"
+
+    [ -f "$HOME/.claude/.claudebar-version-cache" ]
+
+    # Run uninstall
+    "$PROJECT_ROOT/uninstall.sh"
+
+    # Verify cache file is removed
+    [ ! -f "$HOME/.claude/.claudebar-version-cache" ]
 }
 
 @test "uninstall handles missing statusline.sh gracefully" {
