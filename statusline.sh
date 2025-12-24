@@ -5,7 +5,7 @@
 #
 # Displays (two lines):
 #   Line 1: 📂 parent/current | 🌿 main | 📄 S: 0 | U: 2 | A: 1
-#   Line 2: claudebar v0.2.1 | 🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (84k/200k)
+#   Line 2: 🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (84k/200k) | ↑ v0.3.1 (only if update available)
 #
 # Configuration:
 #   CLAUDEBAR_MODE: icon (default), label, or none
@@ -202,23 +202,15 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
     fi
 fi
 
-# Second line: Claude Code specific info (version + model + context)
+# Second line: Claude Code specific info (model + context + update indicator)
 line2=""
 
-# Version with update indicator
-remote_version=$(check_for_updates 2>/dev/null)
-update_indicator=""
-if [ -n "$remote_version" ] && version_gt "$remote_version" "$CLAUDEBAR_VERSION"; then
-    update_indicator=" ${YELLOW}↑${RESET}"
-fi
-line2="claudebar v${CLAUDEBAR_VERSION}${update_indicator}"
-
-# Model display
+# Model display (first)
 if [ -n "$model_name" ]; then
     if [ -n "$ICON_MODEL" ]; then
-        line2="${line2} | ${ICON_MODEL} ${model_name}"
+        line2="${ICON_MODEL} ${model_name}"
     else
-        line2="${line2} | ${model_name}"
+        line2="${model_name}"
     fi
 fi
 
@@ -265,6 +257,16 @@ if [ -n "$context_size" ] && [ "$context_size" -gt 0 ] 2>/dev/null; then
         line2="${line2}${separator}${CTX_COLOR}${percent}%${RESET} ${bar} (${current_k}k/${total_k}k)"
     else
         line2="${line2}${separator}🧠 ${CTX_COLOR}${percent}%${RESET} ${bar} (${current_k}k/${total_k}k)"
+    fi
+fi
+
+# Update indicator (only shown when newer version available)
+remote_version=$(check_for_updates 2>/dev/null)
+if [ -n "$remote_version" ] && version_gt "$remote_version" "$CLAUDEBAR_VERSION"; then
+    if [ -n "$line2" ]; then
+        line2="${line2} | ${YELLOW}↑ v${remote_version}${RESET}"
+    else
+        line2="${YELLOW}↑ v${remote_version}${RESET}"
     fi
 fi
 
