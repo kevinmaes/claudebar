@@ -3,7 +3,8 @@
 # Claude Code Statusline Installer - claudebar
 # https://github.com/kevinmaes/claudebar
 #
-# Usage: curl -fsSL https://raw.githubusercontent.com/kevinmaes/claudebar/main/install.sh | bash
+# Usage: curl -fsSL https://kevinmaes.github.io/claudebar/install.sh | bash
+# or curl -fsSL https://raw.githubusercontent.com/kevinmaes/claudebar/main/install.sh | bash
 
 set -e
 
