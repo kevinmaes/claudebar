@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    branches: [main]
+    branches: [dev]
   workflow_dispatch:
 
 concurrency:
@@ -37,8 +37,22 @@ jobs:
       - name: Create Release Pull Request
         id: changesets
         uses: changesets/action@v1
+        with:
+          title: 'Version Packages'
+          commit: 'Version Packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # When Version Packages PR is merged, hasChangesets becomes false
+      # At that point, promote dev to main and create the release
+      - name: Promote dev to main
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout main
+          git merge dev --ff-only
+          git push origin main
 
       - name: Create and Push Tag
         if: steps.changesets.outputs.hasChangesets == 'false'
@@ -48,6 +62,9 @@ jobs:
           if ! git rev-parse "$TAG" >/dev/null 2>&1; then
             git tag "$TAG"
             git push origin "$TAG"
+            echo "Created and pushed tag $TAG"
+          else
+            echo "Tag $TAG already exists"
           fi
 
       - name: Create GitHub Release
@@ -59,6 +76,9 @@ jobs:
             /usr/bin/gh release create "$TAG" \
               --title "$TAG" \
               --notes "See [CHANGELOG.md](./CHANGELOG.md) for details."
+            echo "Created release $TAG"
+          else
+            echo "Release $TAG already exists"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
