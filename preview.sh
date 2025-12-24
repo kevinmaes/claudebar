@@ -5,9 +5,10 @@
 #
 # For developers: Preview local statusline.sh changes (from any checked out branch) without publishing.
 # Copies the local statusline.sh to ~/.claude/statusline.sh
-# Previewing can be undone by simply reinstalling with ./install.sh
+# 
 #
 # Usage: ./preview.sh
+# Uninstall the preview by simply reinstalling with ./install.sh
 
 set -e
 
