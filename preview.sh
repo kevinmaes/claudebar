@@ -53,11 +53,12 @@ echo "Copied local statusline.sh to $STATUSLINE_SCRIPT"
 if [ ! -f "$SETTINGS_FILE" ]; then
     echo '{"statusLine": {"type": "command", "command": "/bin/bash ~/.claude/statusline.sh"}}' | jq '.' > "$SETTINGS_FILE"
     echo "Created settings.json with statusLine config"
-elif ! jq -e '.statusLine' "$SETTINGS_FILE" > /dev/null 2>&1; then
+else
+    # Merge statusLine config while preserving existing settings like padding
     tmp_file=$(mktemp)
-    jq '. + {"statusLine": {"type": "command", "command": "/bin/bash ~/.claude/statusline.sh"}}' "$SETTINGS_FILE" > "$tmp_file"
+    jq '.statusLine = ((.statusLine // {}) * {"type": "command", "command": "/bin/bash ~/.claude/statusline.sh"})' "$SETTINGS_FILE" > "$tmp_file"
     mv "$tmp_file" "$SETTINGS_FILE"
-    echo "Added statusLine config to settings.json"
+    echo "Updated statusLine config in settings.json"
 fi
 
 echo ""
