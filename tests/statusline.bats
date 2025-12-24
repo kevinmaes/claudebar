@@ -280,12 +280,13 @@ teardown() {
     [[ "$output" == *"claudebar v"* ]]
 }
 
-@test "statusline shows version in second line" {
+@test "statusline hides version when no update available" {
     TEST_REPO=$(setup_git_repo)
 
     result=$(mock_input "$TEST_REPO" | "$STATUSLINE" | strip_colors)
 
-    [[ "$result" == *"claudebar v"* ]]
+    # Version should NOT appear in normal output (only shown when update available)
+    [[ "$result" != *"claudebar v"* ]]
 }
 
 @test "version comparison: newer version detected" {
