@@ -117,7 +117,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 
     # Remove old claudebar function if exists
     if [ -f "$SHELL_RC" ]; then
-        sed -i.bak '/^# claudebar command$/,/^}$/d' "$SHELL_RC" 2>/dev/null || true
+        sed -i.bak '/^# claudebar command$/d; /^claudebar() {/d' "$SHELL_RC" 2>/dev/null || true
         rm -f "$SHELL_RC.bak"
     fi
 

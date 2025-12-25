@@ -56,7 +56,8 @@ fi
 for rc_file in "$HOME/.zshrc" "$HOME/.bashrc"; do
     if [ -f "$rc_file" ]; then
         if grep -q "^# claudebar command$" "$rc_file"; then
-            sed -i.bak '/^# claudebar command$/,/^}$/d' "$rc_file"
+            # Remove the comment line and the function line
+            sed -i.bak '/^# claudebar command$/d; /^claudebar() {/d' "$rc_file"
             rm -f "$rc_file.bak"
             echo "Removed claudebar command from $rc_file"
         fi
