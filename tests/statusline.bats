@@ -280,6 +280,26 @@ teardown() {
     [[ "$output" == *"claudebar v"* ]]
 }
 
+@test "--help flag outputs usage information" {
+    run "$STATUSLINE" --help
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"claudebar v"* ]]
+    [[ "$output" == *"Usage:"* ]]
+    [[ "$output" == *"--version"* ]]
+    [[ "$output" == *"--help"* ]]
+    [[ "$output" == *"--check-update"* ]]
+    [[ "$output" == *"--update"* ]]
+}
+
+@test "-h flag outputs usage information" {
+    run "$STATUSLINE" -h
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"claudebar v"* ]]
+    [[ "$output" == *"Usage:"* ]]
+}
+
 @test "statusline hides version when no update available" {
     TEST_REPO=$(setup_git_repo)
 

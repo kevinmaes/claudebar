@@ -186,6 +186,66 @@ teardown() {
     [ "$status" -eq 0 ]
 }
 
+@test "uninstall removes claudebar command from .zshrc" {
+    # Setup: create .zshrc with claudebar function
+    cat > "$HOME/.zshrc" << 'EOF'
+# existing config
+export PATH="/usr/local/bin:$PATH"
+
+# claudebar command
+claudebar() { ~/.claude/statusline.sh "$@"; }
+
+# more config
+alias ll="ls -la"
+EOF
+
+    # Run uninstall
+    run "$PROJECT_ROOT/uninstall.sh"
+    [ "$status" -eq 0 ]
+
+    # Verify claudebar function is removed
+    ! grep -q "# claudebar command" "$HOME/.zshrc"
+    ! grep -q "claudebar()" "$HOME/.zshrc"
+
+    # Verify other config is preserved
+    grep -q 'export PATH=' "$HOME/.zshrc"
+    grep -q 'alias ll=' "$HOME/.zshrc"
+}
+
+@test "uninstall removes claudebar command from .bashrc" {
+    # Setup: create .bashrc with claudebar function
+    cat > "$HOME/.bashrc" << 'EOF'
+# existing config
+export EDITOR=vim
+
+# claudebar command
+claudebar() { ~/.claude/statusline.sh "$@"; }
+EOF
+
+    # Run uninstall
+    run "$PROJECT_ROOT/uninstall.sh"
+    [ "$status" -eq 0 ]
+
+    # Verify claudebar function is removed
+    ! grep -q "# claudebar command" "$HOME/.bashrc"
+
+    # Verify other config is preserved
+    grep -q 'export EDITOR=vim' "$HOME/.bashrc"
+}
+
+@test "uninstall handles missing shell command silently" {
+    # Setup: create shell configs without claudebar
+    echo 'export PATH="/usr/local/bin:$PATH"' > "$HOME/.zshrc"
+    echo 'export EDITOR=vim' > "$HOME/.bashrc"
+
+    # Run uninstall - should not error or mention claudebar
+    run "$PROJECT_ROOT/uninstall.sh"
+    [ "$status" -eq 0 ]
+
+    # Should NOT mention removing claudebar command
+    [[ "$output" != *"Removed claudebar command"* ]]
+}
+
 # =============================================================================
 # Round-trip Tests
 # =============================================================================
