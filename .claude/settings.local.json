@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "WebFetch(domain:www.npmjs.com)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(brew list:*)",
+      "Bash(bats:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }
