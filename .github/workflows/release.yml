@@ -40,6 +40,6 @@ jobs:
         with:
           title: 'Version Packages'
           commit: 'Version Packages'
-          version: pnpm version
+          version: pnpm run version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
