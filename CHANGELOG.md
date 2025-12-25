@@ -1,5 +1,32 @@
 # claudebar
 
+## 0.5.0
+
+### Minor Changes
+
+- a6ef3ae: Add dev branch workflow for pre-release testing
+
+  - CI now runs on both main and dev branches
+  - release.yml creates Version Packages PRs on push to dev
+  - deploy.yml promotes dev to main and creates GitHub Release when Version Packages PR is merged
+  - Added install-dev.sh and update-dev.sh scripts for testing pre-release features
+  - Updated README with dev branch installation documentation
+
+- 18c6c28: Add optional global `claudebar` command during installation
+
+  - New `--help`/`-h` flag shows version and available commands
+  - Install script now prompts to add `claudebar` shell function
+  - Uninstall script cleans up shell function from `.zshrc` and `.bashrc`
+  - Users can run `claudebar --version`, `claudebar --help`, etc. from anywhere
+
+### Patch Changes
+
+- d6007c7: Preserve existing statusLine settings like padding in preview.sh
+- 533b6aa: Only remove statusLine config during uninstall if it belongs to claudebar
+- d2b81f9: Sync install-dev.sh with install.sh to include optional shell command installation
+- 7fdc8b3: Move version display to end of status line and only show when update available. Version info now displays as `↑ vX.X.X` only when a newer version is detected, reducing visual clutter.
+- f9117da: Warn before overwriting existing statusLine configuration during install
+
 ## 0.4.0
 
 ### Minor Changes
