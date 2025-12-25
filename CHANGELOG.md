@@ -1,5 +1,13 @@
 # claudebar
 
+## 0.5.1
+
+### Patch Changes
+
+- 759c515: Fix release workflow to use `pnpm run version` instead of `pnpm version`
+- cc1335b: fix: sync CLAUDEBAR_VERSION in statusline.sh during release process
+- 97947a6: Add example status lines for each display mode option during installation. Changed "(default)" to "(recommended)" for the icon mode. The selected example is echoed back after choosing.
+
 ## 0.5.0
 
 ### Minor Changes
