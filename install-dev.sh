@@ -75,9 +75,15 @@ curl -fsSL "$RAW_URL" -o "$STATUSLINE_SCRIPT"
 # Ask for display mode preference
 echo ""
 echo "Choose display mode:"
-echo "  1) icon  - Emoji icons 📂🌿📄 (default)"
+echo ""
+echo "  1) icon  - Emoji icons (recommended)"
+echo "     📂 parent/current | 🌿 main | 📄 S: 0 | ... | 🧠 42% (84k/200k)"
+echo ""
 echo "  2) label - Text labels"
+echo "     DIR: parent/current | BRANCH: main | STAGED: 0 | ... | Context: 42% (84k/200k)"
+echo ""
 echo "  3) none  - Minimal output"
+echo "     parent/current | main | S: 0 | ... | 42% (84k/200k)"
 echo ""
 read -p "Enter choice [1-3]: " -n 1 -r < /dev/tty
 echo ""
@@ -85,19 +91,24 @@ echo ""
 case "$REPLY" in
     2)
         MODE="label"
+        EXAMPLE="DIR: parent/current | BRANCH: main | STAGED: 0 | ... | Context: 42% (84k/200k)"
         ;;
     3)
         MODE="none"
+        EXAMPLE="parent/current | main | S: 0 | ... | 42% (84k/200k)"
         ;;
     *)
         MODE="icon"
+        EXAMPLE="📂 parent/current | 🌿 main | 📄 S: 0 | ... | 🧠 42% (84k/200k)"
         ;;
 esac
 
 # Update the mode in the script
 sed -i.bak "s/MODE=\"\${CLAUDEBAR_MODE:-icon}\"/MODE=\"$MODE\"/" "$STATUSLINE_SCRIPT"
 rm -f "$STATUSLINE_SCRIPT.bak"
+echo ""
 echo "Display mode set to: $MODE"
+echo "  $EXAMPLE"
 
 # Ask about shell command installation
 echo ""
@@ -158,18 +169,7 @@ echo ""
 echo "claudebar statusline installed successfully (dev branch)!"
 echo ""
 echo "Restart Claude Code to see your new statusline:"
-
-case "$MODE" in
-    label)
-        echo "  DIR: parent/current | BRANCH: main | STAGED: 0 | ... | Context: 42% (84k/200k)"
-        ;;
-    none)
-        echo "  parent/current | main | S: 0 | ... | 42% (84k/200k)"
-        ;;
-    *)
-        echo "  📂 parent/current | 🌿 main | 📄 S: 0 | ... | 🧠 42% (84k/200k)"
-        ;;
-esac
+echo "  $EXAMPLE"
 echo ""
 echo "To update to latest dev:"
 echo "  curl -fsSL https://raw.githubusercontent.com/kevinmaes/claudebar/dev/update-dev.sh | bash"
