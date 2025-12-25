@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "changeset": "changeset",
-    "version": "changeset version"
+    "version": "changeset version && VERSION=$(grep -o '\"version\": \"[^\"]*\"' package.json | head -1 | cut -d'\"' -f4) && sed -i.bak \"s/CLAUDEBAR_VERSION=\\\"[^\\\"]*\\\"/CLAUDEBAR_VERSION=\\\"$VERSION\\\"/\" statusline.sh && rm -f statusline.sh.bak"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.7"
