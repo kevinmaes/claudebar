@@ -18,7 +18,7 @@
 #   --update         Download and install latest version
 
 # Version (updated by changesets)
-CLAUDEBAR_VERSION="0.3.0"
+CLAUDEBAR_VERSION="0.5.0"
 
 # Cache settings
 CACHE_FILE="$HOME/.claude/.claudebar-version-cache"
