@@ -156,7 +156,12 @@ sudo dnf install jq
   <tr>
     <td>↑</td>
     <td></td>
-    <td>Update available (yellow, shown after version when newer release exists)</td>
+    <td>claudebar update available (yellow, shown when newer release exists)</td>
+  </tr>
+  <tr>
+    <td>↑ CC</td>
+    <td></td>
+    <td>Claude Code update available (yellow, shown when newer version exists in VS Code marketplace)</td>
   </tr>
 </table>
 
@@ -177,6 +182,22 @@ export CLAUDEBAR_MODE=none   # Minimal output
 | `none` | `parent/current \| main \| S: 0 \| U: 2 \| A: 1` |
 
 Add the export to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) to persist the setting.
+
+### Claude Code Update Indicator
+
+The statusline shows when a newer version of Claude Code is available in the VS Code marketplace:
+
+```text
+🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (84k/200k) | ↑ CC v2.1.0
+```
+
+This checks the VS Code/Cursor extensions directory to detect your installed version and compares it against the latest marketplace version. Checks are cached for 24 hours.
+
+To disable this indicator:
+
+```bash
+export CLAUDEBAR_SHOW_CLAUDE_UPDATE=false
+```
 
 ## CLI Flags
 
