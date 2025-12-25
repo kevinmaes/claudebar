@@ -94,6 +94,44 @@ sed -i.bak "s/MODE=\"\${CLAUDEBAR_MODE:-icon}\"/MODE=\"$MODE\"/" "$STATUSLINE_SC
 rm -f "$STATUSLINE_SCRIPT.bak"
 echo "Display mode set to: $MODE"
 
+# Ask about shell command installation
+echo ""
+echo "Add 'claudebar' command to your shell?"
+echo ""
+echo "This lets you run these commands from anywhere:"
+echo "  claudebar --version       Show installed version"
+echo "  claudebar --help          Show usage and available options"
+echo "  claudebar --update        Update to latest version"
+echo "  claudebar --check-update  Check if update is available"
+echo ""
+read -p "Install to shell? [y/N] " -n 1 -r < /dev/tty
+echo ""
+
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    # Detect shell config file
+    if [ -n "${ZSH_VERSION:-}" ] || [ -f "$HOME/.zshrc" ]; then
+        SHELL_RC="$HOME/.zshrc"
+    else
+        SHELL_RC="$HOME/.bashrc"
+    fi
+
+    # Remove old claudebar function if exists
+    if [ -f "$SHELL_RC" ]; then
+        sed -i.bak '/^# claudebar command$/,/^}$/d' "$SHELL_RC" 2>/dev/null || true
+        rm -f "$SHELL_RC.bak"
+    fi
+
+    # Add claudebar function
+    {
+        echo ""
+        echo "# claudebar command"
+        echo 'claudebar() { ~/.claude/statusline.sh "$@"; }'
+    } >> "$SHELL_RC"
+
+    echo "Added claudebar command to $SHELL_RC"
+    echo "Run: source $SHELL_RC  (or restart your terminal)"
+fi
+
 # Set executable permissions
 chmod +x "$STATUSLINE_SCRIPT"
 echo "Set executable permissions on statusline.sh"

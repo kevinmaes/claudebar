@@ -13,6 +13,7 @@
 #
 # CLI flags:
 #   --version, -v    Show version and exit
+#   --help, -h       Show usage and available options
 #   --check-update   Check for updates (bypass cache)
 #   --update         Download and install latest version
 
@@ -107,6 +108,18 @@ check_for_updates() {
 case "${1:-}" in
     --version|-v)
         echo "claudebar v$CLAUDEBAR_VERSION"
+        exit 0
+        ;;
+    --help|-h)
+        echo "claudebar v$CLAUDEBAR_VERSION"
+        echo ""
+        echo "Usage: claudebar [OPTIONS]"
+        echo ""
+        echo "Options:"
+        echo "  --version, -v      Show installed version"
+        echo "  --help, -h         Show this help message"
+        echo "  --check-update     Check if an update is available"
+        echo "  --update           Download and install the latest version"
         exit 0
         ;;
     --check-update)

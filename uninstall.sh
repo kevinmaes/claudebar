@@ -52,6 +52,17 @@ if [ -f "$CACHE_FILE" ]; then
     echo "Removed version cache"
 fi
 
+# Remove claudebar shell command from shell configs
+for rc_file in "$HOME/.zshrc" "$HOME/.bashrc"; do
+    if [ -f "$rc_file" ]; then
+        if grep -q "^# claudebar command$" "$rc_file"; then
+            sed -i.bak '/^# claudebar command$/,/^}$/d' "$rc_file"
+            rm -f "$rc_file.bak"
+            echo "Removed claudebar command from $rc_file"
+        fi
+    fi
+done
+
 echo ""
 echo "claudebar statusline uninstalled successfully!"
 echo "Restart Claude Code to apply changes."
