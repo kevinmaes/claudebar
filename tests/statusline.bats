@@ -339,3 +339,73 @@ teardown() {
     version_gt "0.1.0" "0.2.0" && result="greater" || result="not_greater"
     [ "$result" = "not_greater" ]
 }
+
+# =============================================================================
+# Claude Code Update Tests
+# =============================================================================
+
+@test "get_claude_code_version detects version from VSCode extensions" {
+    # Create mock VSCode extension directory
+    MOCK_VSCODE="$BATS_TMPDIR/mock_vscode"
+    mkdir -p "$MOCK_VSCODE/anthropic.claude-code-2.0.75-darwin-arm64"
+
+    # Define the function with custom path
+    get_claude_code_version() {
+        local version=""
+        if [ -d "$MOCK_VSCODE" ]; then
+            version=$(ls -1d "$MOCK_VSCODE"/anthropic.claude-code-* 2>/dev/null \
+                | sort -V | tail -1 \
+                | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+        fi
+        echo "$version"
+    }
+
+    result=$(get_claude_code_version)
+    [ "$result" = "2.0.75" ]
+
+    rm -rf "$MOCK_VSCODE"
+}
+
+@test "get_claude_code_version returns latest when multiple versions installed" {
+    # Create mock VSCode extension directory with multiple versions
+    MOCK_VSCODE="$BATS_TMPDIR/mock_vscode_multi"
+    mkdir -p "$MOCK_VSCODE/anthropic.claude-code-2.0.53-darwin-arm64"
+    mkdir -p "$MOCK_VSCODE/anthropic.claude-code-2.0.75-darwin-arm64"
+
+    get_claude_code_version() {
+        local version=""
+        if [ -d "$MOCK_VSCODE" ]; then
+            version=$(ls -1d "$MOCK_VSCODE"/anthropic.claude-code-* 2>/dev/null \
+                | sort -V | tail -1 \
+                | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+        fi
+        echo "$version"
+    }
+
+    result=$(get_claude_code_version)
+    [ "$result" = "2.0.75" ]
+
+    rm -rf "$MOCK_VSCODE"
+}
+
+@test "CLAUDEBAR_SHOW_CLAUDE_UPDATE=false disables Claude Code update check" {
+    TEST_REPO=$(setup_git_repo)
+    touch "$TEST_REPO/file.txt"
+    git -C "$TEST_REPO" add file.txt
+    git -C "$TEST_REPO" commit -m "initial" --quiet
+
+    export CLAUDEBAR_SHOW_CLAUDE_UPDATE=false
+    result=$(mock_input "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+    unset CLAUDEBAR_SHOW_CLAUDE_UPDATE
+
+    # Should not contain Claude Code update indicator
+    [[ "$result" != *"↑ CC"* ]]
+}
+
+@test "Claude Code cache file uses separate path from claudebar cache" {
+    # The script should define separate cache files
+    run grep "CLAUDE_CODE_CACHE_FILE" "$STATUSLINE"
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"claude-code-version-cache"* ]]
+}

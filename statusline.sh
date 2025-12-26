@@ -22,7 +22,11 @@ CLAUDEBAR_VERSION="0.5.1"
 
 # Cache settings
 CACHE_FILE="$HOME/.claude/.claudebar-version-cache"
+CLAUDE_CODE_CACHE_FILE="$HOME/.claude/.claude-code-version-cache"
 CACHE_TTL=86400  # 24 hours in seconds
+
+# Feature flags
+SHOW_CLAUDE_UPDATE="${CLAUDEBAR_SHOW_CLAUDE_UPDATE:-true}"
 
 # ANSI color codes
 BLUE='\033[34m'
@@ -71,6 +75,71 @@ esac
 # Compare semver versions: returns 0 if $1 > $2
 version_gt() {
     [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" != "$1" ]
+}
+
+# Get installed Claude Code version
+get_claude_code_version() {
+    local version=""
+
+    # Method 1: Check VSCode extension directory
+    if [ -d "$HOME/.vscode/extensions" ]; then
+        # Find the latest anthropic.claude-code extension
+        # shellcheck disable=SC2012  # ls is safe here; extension names are predictable
+        version=$(ls -1d "$HOME/.vscode/extensions"/anthropic.claude-code-* 2>/dev/null \
+            | sort -V | tail -1 \
+            | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    fi
+
+    # Method 2: Check Cursor extension directory (fallback)
+    if [ -z "$version" ] && [ -d "$HOME/.cursor/extensions" ]; then
+        # shellcheck disable=SC2012  # ls is safe here; extension names are predictable
+        version=$(ls -1d "$HOME/.cursor/extensions"/anthropic.claude-code-* 2>/dev/null \
+            | sort -V | tail -1 \
+            | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    fi
+
+    # Method 3: Try claude CLI (fallback)
+    if [ -z "$version" ]; then
+        version=$(claude --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    fi
+
+    echo "$version"
+}
+
+# Check for Claude Code updates with caching
+# shellcheck disable=SC2120  # Function accepts optional "force" argument
+check_claude_code_updates() {
+    local now remote_version cached_time cached_version
+    now=$(date +%s)
+
+    # Read cache if exists
+    if [ -f "$CLAUDE_CODE_CACHE_FILE" ]; then
+        cached_time=$(cut -d'|' -f1 "$CLAUDE_CODE_CACHE_FILE" 2>/dev/null)
+        cached_version=$(cut -d'|' -f2 "$CLAUDE_CODE_CACHE_FILE" 2>/dev/null)
+
+        # Use cache if fresh (unless force check)
+        if [ "${1:-}" != "force" ] && [ -n "$cached_time" ] && [ $((now - cached_time)) -lt $CACHE_TTL ]; then
+            echo "$cached_version"
+            return
+        fi
+    fi
+
+    # Fetch remote version from VS Code marketplace (timeout 2s, silent)
+    remote_version=$(curl -fsSL --connect-timeout 2 \
+        -H "Accept: application/json;api-version=3.0-preview.1" \
+        -H "Content-Type: application/json" \
+        -X POST \
+        "https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery" \
+        -d '{"filters":[{"criteria":[{"filterType":7,"value":"anthropic.claude-code"}]}],"flags":914}' 2>/dev/null \
+        | jq -r '.results[0].extensions[0].versions[0].version // empty' 2>/dev/null)
+
+    # Update cache
+    if [ -n "$remote_version" ]; then
+        echo "${now}|${remote_version}" > "$CLAUDE_CODE_CACHE_FILE" 2>/dev/null
+        echo "$remote_version"
+    elif [ -n "$cached_version" ]; then
+        echo "$cached_version"  # Use stale cache if fetch fails
+    fi
 }
 
 # Check for updates with caching
@@ -277,9 +346,24 @@ fi
 remote_version=$(check_for_updates 2>/dev/null)
 if [ -n "$remote_version" ] && version_gt "$remote_version" "$CLAUDEBAR_VERSION"; then
     if [ -n "$line2" ]; then
-        line2="${line2} | ${YELLOW}↑ v${remote_version}${RESET}"
+        line2="${line2} | ${YELLOW}↑ claudebar v${remote_version}${RESET}"
     else
-        line2="${YELLOW}↑ v${remote_version}${RESET}"
+        line2="${YELLOW}↑ claudebar v${remote_version}${RESET}"
+    fi
+fi
+
+# Claude Code update indicator (only shown when newer version available)
+if [ "$SHOW_CLAUDE_UPDATE" = "true" ]; then
+    installed_claude_version=$(get_claude_code_version 2>/dev/null)
+    if [ -n "$installed_claude_version" ]; then
+        latest_claude_version=$(check_claude_code_updates 2>/dev/null)
+        if [ -n "$latest_claude_version" ] && version_gt "$latest_claude_version" "$installed_claude_version"; then
+            if [ -n "$line2" ]; then
+                line2="${line2} | ${YELLOW}↑ CC v${latest_claude_version}${RESET}"
+            else
+                line2="${YELLOW}↑ CC v${latest_claude_version}${RESET}"
+            fi
+        fi
     fi
 fi
 
