@@ -105,6 +105,44 @@ echo ""
 echo "Display mode set to: $MODE"
 echo "  $EXAMPLE"
 
+# Ask for path display mode preference
+echo ""
+echo "Choose path display mode:"
+echo ""
+echo "  1) project - Project name only (recommended)"
+echo "     📂 claudebar"
+echo ""
+echo "  2) path    - Parent/current folder"
+echo "     📂 kevinmaes/claudebar"
+echo ""
+echo "  3) both    - Project name with path"
+echo "     📂 claudebar (kevinmaes/claudebar)"
+echo ""
+read -p "Enter choice [1-3]: " -n 1 -r < /dev/tty
+echo ""
+
+case "$REPLY" in
+    2)
+        PATH_MODE="path"
+        PATH_EXAMPLE="📂 kevinmaes/claudebar"
+        ;;
+    3)
+        PATH_MODE="both"
+        PATH_EXAMPLE="📂 claudebar (kevinmaes/claudebar)"
+        ;;
+    *)
+        PATH_MODE="project"
+        PATH_EXAMPLE="📂 claudebar"
+        ;;
+esac
+
+# Update the path mode in the script
+sed -i.bak "s/PATH_MODE=\"\${CLAUDEBAR_DISPLAY_PATH:-path}\"/PATH_MODE=\"$PATH_MODE\"/" "$STATUSLINE_SCRIPT"
+rm -f "$STATUSLINE_SCRIPT.bak"
+echo ""
+echo "Path display set to: $PATH_MODE"
+echo "  $PATH_EXAMPLE"
+
 # Ask about shell command installation
 echo ""
 echo "Add 'claudebar' command to your shell?"

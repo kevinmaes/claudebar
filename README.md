@@ -188,15 +188,15 @@ export CLAUDEBAR_MODE=none   # Minimal output
 Control how the project path is displayed. The project name is the folder name (last segment of the path).
 
 ```bash
-export CLAUDEBAR_DISPLAY_PATH=path     # Default - shows parent/current
 export CLAUDEBAR_DISPLAY_PATH=project  # Recommended - shows only project name
+export CLAUDEBAR_DISPLAY_PATH=path     # Default - shows parent/current
 export CLAUDEBAR_DISPLAY_PATH=both     # Shows project (parent/current)
 ```
 
 | Mode | Example | Description |
 | ---- | ------- | ----------- |
-| `path` | `📂 kevinmaes/claudebar` | Parent folder + current folder |
 | `project` | `📂 claudebar` | Just the folder name (recommended) |
+| `path` | `📂 kevinmaes/claudebar` | Parent folder + current folder |
 | `both` | `📂 claudebar (kevinmaes/claudebar)` | Both formats combined |
 
 Using `project` mode is recommended when working with multiple projects, as `parent/current` can be confusing.
