@@ -9,13 +9,15 @@
 #
 # Configuration:
 #   CLAUDEBAR_MODE: icon (default), label, or none
+#   CLAUDEBAR_DISPLAY_PATH: path (default), project, or both
 #   Set via: export CLAUDEBAR_MODE=label
 #
 # CLI flags:
-#   --version, -v    Show version and exit
-#   --help, -h       Show usage and available options
-#   --check-update   Check for updates (bypass cache)
-#   --update         Download and install latest version
+#   --version, -v          Show version and exit
+#   --help, -h             Show usage and available options
+#   --check-update         Check for updates (bypass cache)
+#   --update               Download and install latest version
+#   --path-mode=MODE       Override CLAUDEBAR_DISPLAY_PATH (path|project|both)
 
 # Version (updated by changesets)
 CLAUDEBAR_VERSION="0.5.1"
@@ -27,6 +29,9 @@ CACHE_TTL=86400  # 24 hours in seconds
 
 # Feature flags
 SHOW_CLAUDE_UPDATE="${CLAUDEBAR_SHOW_CLAUDE_UPDATE:-true}"
+
+# Path display mode (path, project, both)
+PATH_MODE="${CLAUDEBAR_DISPLAY_PATH:-path}"
 
 # ANSI color codes
 BLUE='\033[34m'
@@ -174,6 +179,15 @@ check_for_updates() {
 }
 
 # Handle CLI flags before reading stdin
+# Check for --path-mode flag (can be combined with other flags)
+for arg in "$@"; do
+    case "$arg" in
+        --path-mode=*)
+            PATH_MODE="${arg#--path-mode=}"
+            ;;
+    esac
+done
+
 case "${1:-}" in
     --version|-v)
         echo "claudebar v$CLAUDEBAR_VERSION"
@@ -185,10 +199,15 @@ case "${1:-}" in
         echo "Usage: claudebar [OPTIONS]"
         echo ""
         echo "Options:"
-        echo "  --version, -v      Show installed version"
-        echo "  --help, -h         Show this help message"
-        echo "  --check-update     Check if an update is available"
-        echo "  --update           Download and install the latest version"
+        echo "  --version, -v          Show installed version"
+        echo "  --help, -h             Show this help message"
+        echo "  --check-update         Check if an update is available"
+        echo "  --update               Download and install the latest version"
+        echo "  --path-mode=MODE       Override path display (path|project|both)"
+        echo ""
+        echo "Environment Variables:"
+        echo "  CLAUDEBAR_MODE         Display mode: icon (default), label, none"
+        echo "  CLAUDEBAR_DISPLAY_PATH Path display: path (default), project, both"
         exit 0
         ;;
     --check-update)
@@ -225,14 +244,27 @@ model_name=$(echo "$input" | jq -r '.model.display_name // empty')
 # Change to the directory
 cd "$cwd" 2>/dev/null || exit 0
 
-# Get just the last two parts of the path (parent/current)
+# Get path display based on PATH_MODE
 short_path=$(echo "$cwd" | awk -F'/' '{if (NF>1) print $(NF-1)"/"$NF; else print $NF}')
+project_name=$(basename "$cwd")
+
+case "$PATH_MODE" in
+    project)
+        display_path="$project_name"
+        ;;
+    both)
+        display_path="$project_name ($short_path)"
+        ;;
+    *)  # path (default)
+        display_path="$short_path"
+        ;;
+esac
 
 # Start building the status line
 if [ -n "$ICON_DIR" ]; then
-    status="${ICON_DIR} ${BLUE}${short_path}${RESET}"
+    status="${ICON_DIR} ${BLUE}${display_path}${RESET}"
 else
-    status="${BLUE}${short_path}${RESET}"
+    status="${BLUE}${display_path}${RESET}"
 fi
 
 # Check if we're in a git repository

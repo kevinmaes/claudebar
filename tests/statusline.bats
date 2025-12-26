@@ -33,6 +33,109 @@ teardown() {
     [[ "$result" == *"$parent/$current"* ]]
 }
 
+@test "CLAUDEBAR_DISPLAY_PATH=path shows parent/current (default)" {
+    TEST_REPO=$(setup_git_repo)
+
+    export CLAUDEBAR_DISPLAY_PATH=path
+    result=$(mock_input_minimal "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+    unset CLAUDEBAR_DISPLAY_PATH
+
+    parent=$(basename "$(dirname "$TEST_REPO")")
+    current=$(basename "$TEST_REPO")
+    [[ "$result" == *"$parent/$current"* ]]
+}
+
+@test "CLAUDEBAR_DISPLAY_PATH=project shows only project name" {
+    TEST_REPO=$(setup_git_repo)
+
+    export CLAUDEBAR_DISPLAY_PATH=project
+    result=$(mock_input_minimal "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+    unset CLAUDEBAR_DISPLAY_PATH
+
+    project_name=$(basename "$TEST_REPO")
+    parent=$(basename "$(dirname "$TEST_REPO")")
+
+    # Should contain project name but NOT parent/project format
+    [[ "$result" == *"$project_name"* ]]
+    [[ "$result" != *"$parent/$project_name"* ]]
+}
+
+@test "CLAUDEBAR_DISPLAY_PATH=both shows project name with path in parentheses" {
+    TEST_REPO=$(setup_git_repo)
+
+    export CLAUDEBAR_DISPLAY_PATH=both
+    result=$(mock_input_minimal "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+    unset CLAUDEBAR_DISPLAY_PATH
+
+    project_name=$(basename "$TEST_REPO")
+    parent=$(basename "$(dirname "$TEST_REPO")")
+
+    # Should show format: project_name (parent/project_name)
+    [[ "$result" == *"$project_name ($parent/$project_name)"* ]]
+}
+
+@test "--path-mode=project overrides CLAUDEBAR_DISPLAY_PATH" {
+    TEST_REPO=$(setup_git_repo)
+
+    export CLAUDEBAR_DISPLAY_PATH=path
+    result=$(mock_input_minimal "$TEST_REPO" | "$STATUSLINE" --path-mode=project | strip_colors)
+    unset CLAUDEBAR_DISPLAY_PATH
+
+    project_name=$(basename "$TEST_REPO")
+    parent=$(basename "$(dirname "$TEST_REPO")")
+
+    # Should show only project name (CLI flag overrides env var)
+    [[ "$result" == *"$project_name"* ]]
+    [[ "$result" != *"$parent/$project_name"* ]]
+}
+
+@test "--path-mode=both shows combined format" {
+    TEST_REPO=$(setup_git_repo)
+
+    result=$(mock_input_minimal "$TEST_REPO" | "$STATUSLINE" --path-mode=both | strip_colors)
+
+    project_name=$(basename "$TEST_REPO")
+    parent=$(basename "$(dirname "$TEST_REPO")")
+
+    [[ "$result" == *"$project_name ($parent/$project_name)"* ]]
+}
+
+@test "path mode works with all display modes" {
+    TEST_REPO=$(setup_git_repo)
+    touch "$TEST_REPO/file.txt"
+    git -C "$TEST_REPO" add file.txt
+    git -C "$TEST_REPO" commit -m "initial" --quiet
+
+    project_name=$(basename "$TEST_REPO")
+
+    # Test with icon mode
+    export CLAUDEBAR_MODE=icon
+    export CLAUDEBAR_DISPLAY_PATH=project
+    result=$(mock_input "$TEST_REPO" | "$STATUSLINE")
+    [[ "$result" == *"📂"* ]]
+    [[ "$result" == *"$project_name"* ]]
+    unset CLAUDEBAR_MODE
+    unset CLAUDEBAR_DISPLAY_PATH
+
+    # Test with label mode
+    export CLAUDEBAR_MODE=label
+    export CLAUDEBAR_DISPLAY_PATH=project
+    result=$(mock_input "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+    [[ "$result" == *"DIR:"* ]]
+    [[ "$result" == *"$project_name"* ]]
+    unset CLAUDEBAR_MODE
+    unset CLAUDEBAR_DISPLAY_PATH
+
+    # Test with none mode
+    export CLAUDEBAR_MODE=none
+    export CLAUDEBAR_DISPLAY_PATH=project
+    result=$(mock_input "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+    [[ "$result" != *"DIR:"* ]]
+    [[ "$result" == *"$project_name"* ]]
+    unset CLAUDEBAR_MODE
+    unset CLAUDEBAR_DISPLAY_PATH
+}
+
 # =============================================================================
 # Git Branch Detection Tests
 # =============================================================================
@@ -290,6 +393,8 @@ teardown() {
     [[ "$output" == *"--help"* ]]
     [[ "$output" == *"--check-update"* ]]
     [[ "$output" == *"--update"* ]]
+    [[ "$output" == *"--path-mode"* ]]
+    [[ "$output" == *"CLAUDEBAR_DISPLAY_PATH"* ]]
 }
 
 @test "-h flag outputs usage information" {

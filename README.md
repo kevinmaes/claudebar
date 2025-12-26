@@ -167,6 +167,8 @@ sudo dnf install jq
 
 ## Configuration
 
+### Display Mode
+
 Set the display mode via environment variable:
 
 ```bash
@@ -180,6 +182,24 @@ export CLAUDEBAR_MODE=none   # Minimal output
 | `icon` | `📂 parent/current \| 🌿 main \| 📄 S: 0 \| U: 2 \| A: 1` |
 | `label` | `DIR: parent/current \| BRANCH: main \| STAGED: 0 \| UNSTAGED: 2 \| ADDED: 1` |
 | `none` | `parent/current \| main \| S: 0 \| U: 2 \| A: 1` |
+
+### Path Display
+
+Control how the project path is displayed. The project name is the folder name (last segment of the path).
+
+```bash
+export CLAUDEBAR_DISPLAY_PATH=path     # Default - shows parent/current
+export CLAUDEBAR_DISPLAY_PATH=project  # Recommended - shows only project name
+export CLAUDEBAR_DISPLAY_PATH=both     # Shows project (parent/current)
+```
+
+| Mode | Example | Description |
+| ---- | ------- | ----------- |
+| `path` | `📂 kevinmaes/claudebar` | Parent folder + current folder |
+| `project` | `📂 claudebar` | Just the folder name (recommended) |
+| `both` | `📂 claudebar (kevinmaes/claudebar)` | Both formats combined |
+
+Using `project` mode is recommended when working with multiple projects, as `parent/current` can be confusing.
 
 Add the export to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) to persist the setting.
 
@@ -206,6 +226,7 @@ export CLAUDEBAR_SHOW_CLAUDE_UPDATE=false
 | `--version`, `-v` | Show version and exit |
 | `--check-update` | Check for available updates |
 | `--update` | Download and install latest version |
+| `--path-mode=MODE` | Override path display (`path`, `project`, `both`) |
 
 ## Customization
 
