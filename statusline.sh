@@ -84,6 +84,7 @@ get_claude_code_version() {
     # Method 1: Check VSCode extension directory
     if [ -d "$HOME/.vscode/extensions" ]; then
         # Find the latest anthropic.claude-code extension
+        # shellcheck disable=SC2012  # ls is safe here; extension names are predictable
         version=$(ls -1d "$HOME/.vscode/extensions"/anthropic.claude-code-* 2>/dev/null \
             | sort -V | tail -1 \
             | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
@@ -91,6 +92,7 @@ get_claude_code_version() {
 
     # Method 2: Check Cursor extension directory (fallback)
     if [ -z "$version" ] && [ -d "$HOME/.cursor/extensions" ]; then
+        # shellcheck disable=SC2012  # ls is safe here; extension names are predictable
         version=$(ls -1d "$HOME/.cursor/extensions"/anthropic.claude-code-* 2>/dev/null \
             | sort -V | tail -1 \
             | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
@@ -105,6 +107,7 @@ get_claude_code_version() {
 }
 
 # Check for Claude Code updates with caching
+# shellcheck disable=SC2120  # Function accepts optional "force" argument
 check_claude_code_updates() {
     local now remote_version cached_time cached_version
     now=$(date +%s)
