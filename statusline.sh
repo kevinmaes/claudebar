@@ -346,9 +346,9 @@ fi
 remote_version=$(check_for_updates 2>/dev/null)
 if [ -n "$remote_version" ] && version_gt "$remote_version" "$CLAUDEBAR_VERSION"; then
     if [ -n "$line2" ]; then
-        line2="${line2} | ${YELLOW}↑ v${remote_version}${RESET}"
+        line2="${line2} | ${YELLOW}↑ claudebar v${remote_version}${RESET}"
     else
-        line2="${YELLOW}↑ v${remote_version}${RESET}"
+        line2="${YELLOW}↑ claudebar v${remote_version}${RESET}"
     fi
 fi
 

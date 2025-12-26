@@ -58,7 +58,7 @@ Or use the built-in update command:
 The statusline shows a yellow `↑` indicator when a newer version is available:
 
 ```
-claudebar v0.2.1 ↑ | 🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (84k/200k)
+🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (84k/200k) | ↑ claudebar v0.6.0
 ```
 
 Version checks are cached for 24 hours. To manually check:
