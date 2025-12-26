@@ -1,0 +1,404 @@
+#!/usr/bin/expect -f
+
+# Interactive tests for uninstall.sh using expect
+# Tests the uninstall behavior for different statusLine configurations
+# Note: uninstall.sh doesn't have interactive prompts, but we test its
+# output messages and behavior for different scenarios
+
+# Get project root (two levels up from this script)
+set script_dir [file dirname [file normalize [info script]]]
+set project_root [file dirname [file dirname $script_dir]]
+
+# Test timeout (seconds)
+set timeout 30
+
+# Helper to create test environment
+proc setup_test_home {} {
+    global env project_root
+
+    # Create temporary home directory
+    set test_home [exec mktemp -d]
+    set env(HOME) $test_home
+
+    # Create .claude directory
+    file mkdir "$test_home/.claude"
+
+    return $test_home
+}
+
+# Helper to cleanup test environment
+proc cleanup_test_home {test_home} {
+    if {[file exists $test_home]} {
+        file delete -force $test_home
+    }
+}
+
+# Helper to create statusline.sh
+proc create_statusline {test_home} {
+    set statusline "$test_home/.claude/statusline.sh"
+    set fp [open $statusline w]
+    puts $fp "#!/bin/bash\necho 'statusline'"
+    close $fp
+    file attributes $statusline -permissions 0755
+}
+
+# Helper to create settings.json with custom command
+proc create_settings {test_home command} {
+    set settings_file "$test_home/.claude/settings.json"
+    set fp [open $settings_file w]
+    puts $fp "\{\"statusLine\": \{\"type\": \"command\", \"command\": \"$command\"\}\}"
+    close $fp
+}
+
+# Helper to create shell RC file with claudebar command
+proc create_shell_rc {test_home filename} {
+    set rc_file "$test_home/$filename"
+    set fp [open $rc_file w]
+    puts $fp "# existing content"
+    puts $fp ""
+    puts $fp "# claudebar command"
+    puts $fp "claudebar() { ~/.claude/statusline.sh \"\$@\"; }"
+    close $fp
+}
+
+# Helper to read settings.json
+proc read_settings {test_home} {
+    set settings_file "$test_home/.claude/settings.json"
+    if {[file exists $settings_file]} {
+        set fp [open $settings_file r]
+        set content [read $fp]
+        close $fp
+        return $content
+    }
+    return ""
+}
+
+# ============================================================================
+# Test 1: Uninstall claudebar statusLine - should be removed
+# ============================================================================
+proc test_uninstall_claudebar {} {
+    global project_root
+    puts "\n=== Test: Uninstall claudebar statusLine ==="
+
+    set test_home [setup_test_home]
+
+    # Setup: Create claudebar installation
+    create_statusline $test_home
+    create_settings $test_home "/bin/bash ~/.claude/statusline.sh"
+
+    spawn bash "$project_root/uninstall.sh"
+
+    # Should see statusline.sh removal
+    expect {
+        "Removed*statusline.sh" {
+            puts "PASS: statusline.sh removal confirmed"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for statusline.sh removal"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Should see settings.json update
+    expect {
+        "Removed statusLine config from settings.json" {
+            puts "PASS: statusLine config removal confirmed"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for settings.json update"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Should see success message
+    expect {
+        "claudebar statusline uninstalled successfully!" {
+            puts "PASS: Uninstall completed successfully"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for success message"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect eof
+
+    # Verify statusline.sh was removed
+    if {[file exists "$test_home/.claude/statusline.sh"]} {
+        puts "FAIL: statusline.sh still exists"
+        cleanup_test_home $test_home
+        return 0
+    }
+
+    # Verify statusLine was removed from settings.json
+    set settings [read_settings $test_home]
+    if {[string first "statusLine" $settings] != -1} {
+        puts "FAIL: statusLine still in settings.json"
+        cleanup_test_home $test_home
+        return 0
+    }
+
+    puts "PASS: claudebar completely uninstalled"
+    cleanup_test_home $test_home
+    return 1
+}
+
+# ============================================================================
+# Test 2: Non-claudebar statusLine - should be skipped
+# ============================================================================
+proc test_skip_non_claudebar {} {
+    global project_root
+    puts "\n=== Test: Skip non-claudebar statusLine ==="
+
+    set test_home [setup_test_home]
+
+    # Setup: Create non-claudebar config
+    create_statusline $test_home
+    create_settings $test_home "/usr/local/bin/my-custom-statusline"
+
+    spawn bash "$project_root/uninstall.sh"
+
+    # Should see statusline.sh removal (the file is still removed)
+    expect {
+        "Removed*statusline.sh" {
+            # Continue
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for statusline.sh message"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Should see skip message for non-claudebar config
+    expect {
+        "Skipping settings.json: statusLine is not claudebar" {
+            puts "PASS: Non-claudebar statusLine skipped"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for skip message"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Should still see success message
+    expect {
+        "claudebar statusline uninstalled successfully!" {}
+        timeout {
+            puts "FAIL: Timeout waiting for success message"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect eof
+
+    # Verify non-claudebar config was preserved
+    set settings [read_settings $test_home]
+    if {[string first "my-custom-statusline" $settings] == -1} {
+        puts "FAIL: Non-claudebar config was not preserved"
+        cleanup_test_home $test_home
+        return 0
+    }
+
+    puts "PASS: Non-claudebar config preserved correctly"
+    cleanup_test_home $test_home
+    return 1
+}
+
+# ============================================================================
+# Test 3: No statusLine config - handled gracefully
+# ============================================================================
+proc test_no_statusline_config {} {
+    global project_root
+    puts "\n=== Test: No statusLine config ==="
+
+    set test_home [setup_test_home]
+
+    # Setup: Create settings.json without statusLine
+    set settings_file "$test_home/.claude/settings.json"
+    set fp [open $settings_file w]
+    puts $fp "\{\"someOtherSetting\": true\}"
+    close $fp
+
+    # Create statusline.sh
+    create_statusline $test_home
+
+    spawn bash "$project_root/uninstall.sh"
+
+    # Should see statusline.sh removal
+    expect {
+        "Removed*statusline.sh" {
+            # Continue
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for statusline.sh message"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Should see no statusLine message
+    expect {
+        "No statusLine config found in settings.json" {
+            puts "PASS: No statusLine config handled"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for no config message"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect {
+        "claudebar statusline uninstalled successfully!" {}
+        timeout {
+            puts "FAIL: Timeout waiting for success message"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect eof
+
+    puts "PASS: No statusLine config handled gracefully"
+    cleanup_test_home $test_home
+    return 1
+}
+
+# ============================================================================
+# Test 4: Shell command removal
+# ============================================================================
+proc test_shell_command_removal {} {
+    global project_root
+    puts "\n=== Test: Shell command removal ==="
+
+    set test_home [setup_test_home]
+
+    # Setup: Create claudebar installation with shell command
+    create_statusline $test_home
+    create_settings $test_home "/bin/bash ~/.claude/statusline.sh"
+    create_shell_rc $test_home ".zshrc"
+
+    spawn bash "$project_root/uninstall.sh"
+
+    # Should see shell command removal
+    expect {
+        "Removed claudebar command from*zshrc" {
+            puts "PASS: Shell command removal confirmed"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for shell command removal"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect {
+        "claudebar statusline uninstalled successfully!" {}
+        timeout {
+            puts "FAIL: Timeout waiting for success message"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect eof
+
+    # Verify claudebar command was removed from .zshrc
+    set zshrc "$test_home/.zshrc"
+    if {[file exists $zshrc]} {
+        set fp [open $zshrc r]
+        set content [read $fp]
+        close $fp
+        if {[string first "claudebar()" $content] != -1} {
+            puts "FAIL: claudebar command still in .zshrc"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    puts "PASS: claudebar command removed from shell"
+    cleanup_test_home $test_home
+    return 1
+}
+
+# ============================================================================
+# Test 5: Missing files handled gracefully
+# ============================================================================
+proc test_missing_files {} {
+    global project_root
+    puts "\n=== Test: Missing files handled gracefully ==="
+
+    set test_home [setup_test_home]
+
+    # Don't create any files - .claude directory exists but is empty
+
+    spawn bash "$project_root/uninstall.sh"
+
+    # Should see skip messages
+    expect {
+        "statusline.sh not found, skipping..." {
+            puts "PASS: Missing statusline.sh handled"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for missing file message"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect {
+        "settings.json not found, skipping..." {
+            puts "PASS: Missing settings.json handled"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for missing settings message"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect {
+        "claudebar statusline uninstalled successfully!" {}
+        timeout {
+            puts "FAIL: Timeout waiting for success message"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect eof
+
+    puts "PASS: Missing files handled gracefully"
+    cleanup_test_home $test_home
+    return 1
+}
+
+# ============================================================================
+# Run all tests
+# ============================================================================
+puts "Running uninstall.sh interactive tests..."
+puts "=========================================="
+
+set passed 0
+set failed 0
+
+# Run tests
+if {[test_uninstall_claudebar]} { incr passed } else { incr failed }
+if {[test_skip_non_claudebar]} { incr passed } else { incr failed }
+if {[test_no_statusline_config]} { incr passed } else { incr failed }
+if {[test_shell_command_removal]} { incr passed } else { incr failed }
+if {[test_missing_files]} { incr passed } else { incr failed }
+
+puts "\n=========================================="
+puts "Results: $passed passed, $failed failed"
+
+if {$failed > 0} {
+    exit 1
+}
+exit 0

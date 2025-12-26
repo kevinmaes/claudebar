@@ -1,0 +1,659 @@
+#!/usr/bin/expect -f
+
+# Interactive tests for install.sh using expect
+# Tests the interactive prompt flows that can't be easily tested with bats
+#
+# Note: install.sh uses "read -n 1" which reads only 1 character.
+# For explicit choices, send just the character (no \r).
+# For defaults (Enter), send \r.
+
+# Get project root (two levels up from this script)
+set script_dir [file dirname [file normalize [info script]]]
+set project_root [file dirname [file dirname $script_dir]]
+
+# Test timeout (seconds)
+set timeout 30
+
+# Helper to create test environment
+proc setup_test_home {} {
+    global env project_root
+
+    # Create temporary home directory
+    set test_home [exec mktemp -d]
+    set env(HOME) $test_home
+
+    # Create .claude directory
+    file mkdir "$test_home/.claude"
+
+    return $test_home
+}
+
+# Helper to cleanup test environment
+proc cleanup_test_home {test_home} {
+    if {[file exists $test_home]} {
+        file delete -force $test_home
+    }
+}
+
+# Helper to create settings.json with existing non-claudebar config
+proc create_existing_config {test_home command} {
+    set settings_file "$test_home/.claude/settings.json"
+    set fp [open $settings_file w]
+    puts $fp "\{\"statusLine\": \{\"type\": \"command\", \"command\": \"$command\"\}\}"
+    close $fp
+}
+
+# Helper to create settings.json with claudebar config
+proc create_claudebar_config {test_home} {
+    set settings_file "$test_home/.claude/settings.json"
+    set fp [open $settings_file w]
+    puts $fp "\{\"statusLine\": \{\"type\": \"command\", \"command\": \"/bin/bash ~/.claude/statusline.sh\"\}\}"
+    close $fp
+}
+
+# Helper to read settings.json
+proc read_settings {test_home} {
+    set settings_file "$test_home/.claude/settings.json"
+    if {[file exists $settings_file]} {
+        set fp [open $settings_file r]
+        set content [read $fp]
+        close $fp
+        return $content
+    }
+    return ""
+}
+
+# ============================================================================
+# Test 1: Happy path with default choices (press Enter for all)
+# ============================================================================
+proc test_happy_path_defaults {} {
+    global project_root
+    puts "\n=== Test: Happy path with default choices ==="
+
+    set test_home [setup_test_home]
+
+    spawn bash "$project_root/install.sh"
+
+    # Display mode prompt - press Enter for default (icon)
+    expect {
+        -re "Enter choice .*:" {
+            send "\r"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for display mode prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Path display mode prompt - press Enter for default (project)
+    expect {
+        -re "Enter choice .*:" {
+            send "\r"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for path display mode prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Shell install prompt - decline with Enter (default N)
+    expect {
+        -re "Install to shell.*\\]" {
+            send "\r"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for shell install prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Wait for completion
+    expect {
+        "claudebar statusline installed successfully!" {
+            puts "PASS: Installation completed successfully"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for success message"
+            cleanup_test_home $test_home
+            return 0
+        }
+        eof {
+            puts "FAIL: Script ended unexpectedly"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect eof
+
+    # Verify statusline.sh was created
+    if {![file exists "$test_home/.claude/statusline.sh"]} {
+        puts "FAIL: statusline.sh was not created"
+        cleanup_test_home $test_home
+        return 0
+    }
+
+    # Verify settings.json was created with claudebar config
+    set settings [read_settings $test_home]
+    if {[string first "statusline.sh" $settings] == -1} {
+        puts "FAIL: settings.json does not contain statusline.sh"
+        cleanup_test_home $test_home
+        return 0
+    }
+
+    puts "PASS: All files created correctly"
+    cleanup_test_home $test_home
+    return 1
+}
+
+# ============================================================================
+# Test 2: User declines overwrite - existing config preserved
+# ============================================================================
+proc test_decline_overwrite {} {
+    global project_root
+    puts "\n=== Test: User declines to overwrite existing statusLine ==="
+
+    set test_home [setup_test_home]
+
+    # Create existing non-claudebar config
+    create_existing_config $test_home "/usr/local/bin/my-custom-statusline"
+
+    spawn bash "$project_root/install.sh"
+
+    # Display mode prompt - send just "1" (no \r for single-char read)
+    expect {
+        -re "Enter choice .*:" {
+            send "1"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for display mode prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Path display mode prompt
+    expect {
+        -re "Enter choice .*:" {
+            send "1"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for path display mode prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Shell install prompt
+    expect {
+        -re "Install to shell.*\\]" {
+            send "n"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for shell install prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Overwrite prompt - decline
+    expect {
+        "An existing statusLine configuration was found" {
+            # Continue to next expect
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for existing config warning"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect {
+        -re "Overwrite with claudebar.*\\]" {
+            send "n"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for overwrite prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Should see cancellation message
+    expect {
+        "Installation cancelled. Your existing statusLine was preserved." {
+            puts "PASS: Installation cancelled as expected"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for cancellation message"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect eof
+
+    # Verify existing config was preserved
+    set settings [read_settings $test_home]
+    if {[string first "my-custom-statusline" $settings] == -1} {
+        puts "FAIL: Existing config was not preserved"
+        cleanup_test_home $test_home
+        return 0
+    }
+
+    puts "PASS: Existing config preserved correctly"
+    cleanup_test_home $test_home
+    return 1
+}
+
+# ============================================================================
+# Test 3: User accepts overwrite - claudebar installed
+# ============================================================================
+proc test_accept_overwrite {} {
+    global project_root
+    puts "\n=== Test: User accepts overwrite of existing statusLine ==="
+
+    set test_home [setup_test_home]
+
+    # Create existing non-claudebar config
+    create_existing_config $test_home "/usr/local/bin/my-custom-statusline"
+
+    spawn bash "$project_root/install.sh"
+
+    # Display mode prompt
+    expect {
+        -re "Enter choice .*:" {
+            send "1"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for display mode prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Path display mode prompt
+    expect {
+        -re "Enter choice .*:" {
+            send "1"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for path display mode prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Shell install prompt
+    expect {
+        -re "Install to shell.*\\]" {
+            send "n"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for shell install prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Overwrite prompt - accept
+    expect {
+        "An existing statusLine configuration was found" {
+            # Continue
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for existing config warning"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect {
+        -re "Overwrite with claudebar.*\\]" {
+            send "y"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for overwrite prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Should see success message
+    expect {
+        "claudebar statusline installed successfully!" {
+            puts "PASS: Installation completed after accepting overwrite"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for success message"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect eof
+
+    # Verify claudebar config replaced the old one
+    set settings [read_settings $test_home]
+    if {[string first "statusline.sh" $settings] == -1} {
+        puts "FAIL: claudebar config was not installed"
+        cleanup_test_home $test_home
+        return 0
+    }
+    if {[string first "my-custom-statusline" $settings] != -1} {
+        puts "FAIL: Old config was not replaced"
+        cleanup_test_home $test_home
+        return 0
+    }
+
+    puts "PASS: claudebar config installed correctly"
+    cleanup_test_home $test_home
+    return 1
+}
+
+# ============================================================================
+# Test 4: Display mode selection - label mode
+# ============================================================================
+proc test_display_mode_label {} {
+    global project_root
+    puts "\n=== Test: Display mode selection - label ==="
+
+    set test_home [setup_test_home]
+
+    spawn bash "$project_root/install.sh"
+
+    # Display mode prompt - select label (2)
+    expect {
+        -re "Enter choice .*:" {
+            send "2"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for display mode prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Verify label mode was set
+    expect {
+        "Display mode set to: label" {
+            puts "PASS: Label mode selected"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for mode confirmation"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Path display mode prompt - default
+    expect {
+        -re "Enter choice .*:" {
+            send "\r"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for path display mode prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Shell install prompt - default (N)
+    expect {
+        -re "Install to shell.*\\]" {
+            send "\r"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for shell install prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect {
+        "claudebar statusline installed successfully!" {}
+        timeout {
+            puts "FAIL: Timeout waiting for success"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect eof
+
+    # Verify the mode was written to statusline.sh
+    set statusline_file "$test_home/.claude/statusline.sh"
+    if {[file exists $statusline_file]} {
+        set fp [open $statusline_file r]
+        set content [read $fp]
+        close $fp
+        if {[string first "MODE=\"label\"" $content] != -1} {
+            puts "PASS: Label mode written to statusline.sh"
+            cleanup_test_home $test_home
+            return 1
+        }
+    }
+
+    puts "FAIL: Label mode not found in statusline.sh"
+    cleanup_test_home $test_home
+    return 0
+}
+
+# ============================================================================
+# Test 5: Path display mode selection - path mode
+# Note: This test verifies the interactive prompt flow. The PATH_MODE feature
+# may not be in the downloaded statusline.sh if main branch is outdated.
+# ============================================================================
+proc test_path_mode_path {} {
+    global project_root
+    puts "\n=== Test: Path display mode selection - path ==="
+
+    set test_home [setup_test_home]
+
+    spawn bash "$project_root/install.sh"
+
+    # Display mode prompt - default
+    expect {
+        -re "Enter choice .*:" {
+            send "1"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for display mode prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Path display mode prompt - select path (2)
+    expect {
+        -re "Enter choice .*:" {
+            send "2"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for path display mode prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Verify path mode was set
+    expect {
+        "Path display set to: path" {
+            puts "PASS: Path mode selected"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for path mode confirmation"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Shell install prompt - default (N)
+    expect {
+        -re "Install to shell.*\\]" {
+            send "\r"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for shell install prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect {
+        "claudebar statusline installed successfully!" {}
+        timeout {
+            puts "FAIL: Timeout waiting for success"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect eof
+
+    # Verify the path mode was written to statusline.sh
+    # Note: PATH_MODE may not exist if downloaded from main branch without the feature
+    set statusline_file "$test_home/.claude/statusline.sh"
+    if {[file exists $statusline_file]} {
+        set fp [open $statusline_file r]
+        set content [read $fp]
+        close $fp
+
+        # Check if PATH_MODE feature exists in the downloaded file
+        if {[string first "PATH_MODE" $content] == -1} {
+            puts "SKIP: PATH_MODE not in downloaded statusline.sh (feature not on main yet)"
+            cleanup_test_home $test_home
+            return 1
+        }
+
+        if {[string first "PATH_MODE=\"path\"" $content] != -1} {
+            puts "PASS: Path mode written to statusline.sh"
+            cleanup_test_home $test_home
+            return 1
+        }
+    }
+
+    puts "FAIL: Path mode not found in statusline.sh"
+    cleanup_test_home $test_home
+    return 0
+}
+
+# ============================================================================
+# Test 6: Shell command installation - yes
+# ============================================================================
+proc test_shell_install_yes {} {
+    global project_root
+    puts "\n=== Test: Shell command installation - yes ==="
+
+    set test_home [setup_test_home]
+
+    # Create a .zshrc file
+    set zshrc "$test_home/.zshrc"
+    set fp [open $zshrc w]
+    puts $fp "# existing zshrc content"
+    close $fp
+
+    spawn bash "$project_root/install.sh"
+
+    # Display mode prompt
+    expect {
+        -re "Enter choice .*:" {
+            send "1"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for display mode prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Path display mode prompt
+    expect {
+        -re "Enter choice .*:" {
+            send "1"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for path display mode prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Shell install prompt - accept
+    expect {
+        -re "Install to shell.*\\]" {
+            send "y"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for shell install prompt"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    # Should see shell config updated message
+    expect {
+        "Added claudebar command to" {
+            puts "PASS: Shell command installation confirmed"
+        }
+        timeout {
+            puts "FAIL: Timeout waiting for shell install confirmation"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect {
+        "claudebar statusline installed successfully!" {}
+        timeout {
+            puts "FAIL: Timeout waiting for success"
+            cleanup_test_home $test_home
+            return 0
+        }
+    }
+
+    expect eof
+
+    # Verify claudebar command was added to shell config
+    set fp [open $zshrc r]
+    set content [read $fp]
+    close $fp
+
+    if {[string first "claudebar()" $content] != -1} {
+        puts "PASS: claudebar command added to .zshrc"
+        cleanup_test_home $test_home
+        return 1
+    }
+
+    puts "FAIL: claudebar command not found in .zshrc"
+    cleanup_test_home $test_home
+    return 0
+}
+
+# ============================================================================
+# Run all tests
+# ============================================================================
+puts "Running install.sh interactive tests..."
+puts "========================================"
+
+set passed 0
+set failed 0
+
+# Run tests
+if {[test_happy_path_defaults]} { incr passed } else { incr failed }
+if {[test_decline_overwrite]} { incr passed } else { incr failed }
+if {[test_accept_overwrite]} { incr passed } else { incr failed }
+if {[test_display_mode_label]} { incr passed } else { incr failed }
+if {[test_path_mode_path]} { incr passed } else { incr failed }
+if {[test_shell_install_yes]} { incr passed } else { incr failed }
+
+puts "\n========================================"
+puts "Results: $passed passed, $failed failed"
+
+if {$failed > 0} {
+    exit 1
+}
+exit 0

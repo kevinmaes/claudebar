@@ -246,13 +246,14 @@ The installer:
 - `bats` - Bash Automated Testing System
 - `shellcheck` - Shell script linter
 - `jq` - JSON processor
+- `expect` - Interactive prompt testing
 
 ```bash
 # macOS
-brew install bats-core shellcheck jq
+brew install bats-core shellcheck jq expect
 
 # Ubuntu/Debian
-sudo apt install bats shellcheck jq
+sudo apt install bats shellcheck jq expect
 ```
 
 ### Commands
@@ -260,7 +261,9 @@ sudo apt install bats shellcheck jq
 | Command | Description |
 |---------|-------------|
 | `make lint` | Run shellcheck on all scripts |
-| `make test` | Run full BATS test suite |
+| `make test` | Run BATS unit tests |
+| `make test-interactive` | Run expect interactive tests |
+| `make test-all` | Run all tests (BATS + expect) |
 | `make preview` | Quick preview with sample JSON |
 | `make install` | Run install.sh locally |
 | `make update` | Run update.sh locally |
@@ -269,10 +272,16 @@ sudo apt install bats shellcheck jq
 ### Running tests
 
 ```bash
-# Run all tests
+# Run BATS unit tests
 make test
 
-# Run specific test file
+# Run expect interactive tests
+make test-interactive
+
+# Run all tests
+make test-all
+
+# Run specific BATS test file
 bats tests/statusline.bats
 
 # Run with verbose output

@@ -1,4 +1,4 @@
-.PHONY: lint test preview install update uninstall
+.PHONY: lint test test-interactive test-all preview install update uninstall
 
 lint:
 	shellcheck *.sh
@@ -14,6 +14,17 @@ preview:
 test:
 	bats tests/
 	@echo "✓ all tests passed"
+
+# Run expect interactive tests
+test-interactive:
+	@echo "Running interactive tests..."
+	@expect tests/interactive/install.exp
+	@expect tests/interactive/uninstall.exp
+	@echo "✓ all interactive tests passed"
+
+# Run all tests (BATS + interactive)
+test-all: test test-interactive
+	@echo "✓ all test suites passed"
 
 install:
 	./install.sh

@@ -14,21 +14,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install BATS
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y bats
-
-      - name: Install jq
-        run: sudo apt-get install -y jq
+          sudo apt-get install -y bats jq shellcheck expect
 
       - name: Run shellcheck
-        run: |
-          sudo apt-get install -y shellcheck
-          make lint
+        run: make lint
 
       - name: Run BATS tests
         run: make test
+
+      - name: Run interactive tests
+        run: make test-interactive
 
   test-macos:
     runs-on: macos-latest
@@ -37,16 +35,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install BATS
-        run: brew install bats-core
-
-      - name: Install jq
-        run: brew install jq
+      - name: Install dependencies
+        run: brew install bats-core jq shellcheck expect
 
       - name: Run shellcheck
-        run: |
-          brew install shellcheck
-          make lint
+        run: make lint
 
       - name: Run BATS tests
         run: make test
+
+      - name: Run interactive tests
+        run: make test-interactive
