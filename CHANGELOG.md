@@ -1,5 +1,32 @@
 # claudebar
 
+## 0.6.0
+
+### Minor Changes
+
+- 449b624: Add Claude Code update availability indicator
+
+  - Show `↑ CC v2.1.0` when a newer version of Claude Code is available in the VS Code marketplace
+  - Detect installed version from VS Code/Cursor extension directories or claude CLI
+  - Cache marketplace checks for 24 hours
+  - Configurable via `CLAUDEBAR_SHOW_CLAUDE_UPDATE` environment variable (default: true)
+
+- 17e1bda: Add option to display project name instead of path
+
+  - New `CLAUDEBAR_DISPLAY_PATH` environment variable with three modes:
+    - `path` (default): shows abbreviated path (parent/current)
+    - `project` (recommended): shows only the folder name
+    - `both`: shows project name with path in parentheses
+  - New `--path-mode=MODE` CLI flag to override the environment variable
+  - Project name is derived from the folder name (last path segment)
+  - Recommended for working with multiple projects where parent/current format is confusing
+
+### Patch Changes
+
+- bb9327d: Add changeset-release to branches in triggers
+- 2b3d6b0: Add expect tests for interactive prompts in install.sh and uninstall.sh
+- f528ad4: Add changeset-release branches to ci.yml trigger
+
 ## 0.5.1
 
 ### Patch Changes
