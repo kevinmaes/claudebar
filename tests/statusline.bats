@@ -324,6 +324,113 @@ teardown() {
 }
 
 # =============================================================================
+# Billing Block Tests
+# =============================================================================
+
+@test "displays billing block progress" {
+    TEST_REPO=$(setup_git_repo)
+
+    # 3h 15m = 195 minutes = 11700000 ms (65% of 5h)
+    result=$(mock_input_with_billing "$TEST_REPO" 11700000 | "$STATUSLINE" | strip_colors)
+
+    [[ "$result" == *"65%"* ]]
+    [[ "$result" == *"3h 15m / 5h"* ]]
+}
+
+@test "billing block green under 4 hours" {
+    TEST_REPO=$(setup_git_repo)
+
+    # 2 hours = 7200000 ms
+    result=$(mock_input_with_billing "$TEST_REPO" 7200000 | "$STATUSLINE")
+
+    # Should contain green color code for billing
+    [[ "$result" == *$'\033[32m'* ]]
+}
+
+@test "billing block yellow at 4-4.5 hours" {
+    TEST_REPO=$(setup_git_repo)
+
+    # 4h 15m = 255 minutes = 15300000 ms
+    result=$(mock_input_with_billing "$TEST_REPO" 15300000 | "$STATUSLINE")
+
+    # Should contain yellow color code
+    [[ "$result" == *$'\033[33m'* ]]
+}
+
+@test "billing block red over 4.5 hours" {
+    TEST_REPO=$(setup_git_repo)
+
+    # 4h 45m = 285 minutes = 17100000 ms
+    result=$(mock_input_with_billing "$TEST_REPO" 17100000 | "$STATUSLINE")
+
+    # Should contain red color code
+    [[ "$result" == *$'\033[31m'* ]]
+}
+
+@test "billing block caps at 100% when over 5 hours" {
+    TEST_REPO=$(setup_git_repo)
+
+    # 6 hours = 21600000 ms (120% but should cap at 100%)
+    result=$(mock_input_with_billing "$TEST_REPO" 21600000 | "$STATUSLINE" | strip_colors)
+
+    [[ "$result" == *"100%"* ]]
+    [[ "$result" == *"6h 0m / 5h"* ]]
+}
+
+@test "billing block shows timer icon in icon mode" {
+    TEST_REPO=$(setup_git_repo)
+
+    export CLAUDEBAR_MODE=icon
+    result=$(mock_input_with_billing "$TEST_REPO" 7200000 | "$STATUSLINE")
+    unset CLAUDEBAR_MODE
+
+    [[ "$result" == *"⏱️"* ]]
+}
+
+@test "billing block shows label in label mode" {
+    TEST_REPO=$(setup_git_repo)
+
+    export CLAUDEBAR_MODE=label
+    result=$(mock_input_with_billing "$TEST_REPO" 7200000 | "$STATUSLINE" | strip_colors)
+    unset CLAUDEBAR_MODE
+
+    [[ "$result" == *"Billing:"* ]]
+}
+
+@test "billing block minimal in none mode" {
+    TEST_REPO=$(setup_git_repo)
+
+    export CLAUDEBAR_MODE=none
+    result=$(mock_input_with_billing "$TEST_REPO" 7200000 | "$STATUSLINE" | strip_colors)
+    unset CLAUDEBAR_MODE
+
+    [[ "$result" != *"⏱️"* ]]
+    [[ "$result" != *"Billing:"* ]]
+    [[ "$result" == *"/ 5h"* ]]
+}
+
+@test "handles missing billing data gracefully" {
+    TEST_REPO=$(setup_git_repo)
+
+    # Use regular mock_input without billing data
+    result=$(mock_input "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+
+    # Should not contain billing indicator
+    [[ "$result" != *"/ 5h"* ]]
+}
+
+@test "billing block displays alongside context window" {
+    TEST_REPO=$(setup_git_repo)
+
+    # 2 hours billing, 42% context
+    result=$(mock_input_with_billing "$TEST_REPO" 7200000 200000 40000 44000 | "$STATUSLINE" | strip_colors)
+
+    # Should have both indicators
+    [[ "$result" == *"84k/200k"* ]]
+    [[ "$result" == *"/ 5h"* ]]
+}
+
+# =============================================================================
 # Edge Case Tests
 # =============================================================================
 

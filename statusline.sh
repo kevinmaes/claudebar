@@ -374,6 +374,58 @@ if [ -n "$context_size" ] && [ "$context_size" -gt 0 ] 2>/dev/null; then
     fi
 fi
 
+# Billing block visualization (5-hour blocks)
+FIVE_HOURS_MS=18000000
+duration_ms=$(echo "$input" | jq -r '.cost.total_duration_ms // empty')
+
+if [ -n "$duration_ms" ] && [ "$duration_ms" -gt 0 ] 2>/dev/null; then
+    # Calculate percentage of 5-hour block
+    billing_percent=$((duration_ms * 100 / FIVE_HOURS_MS))
+    # Cap at 100% for display
+    [ "$billing_percent" -gt 100 ] && billing_percent=100
+
+    # Convert to hours and minutes
+    total_minutes=$((duration_ms / 60000))
+    hours=$((total_minutes / 60))
+    minutes=$((total_minutes % 60))
+
+    # Color based on thresholds: green < 4h, yellow 4-4.5h, red > 4.5h
+    if [ "$total_minutes" -ge 270 ]; then
+        BILL_COLOR="$RED"
+    elif [ "$total_minutes" -ge 240 ]; then
+        BILL_COLOR="$YELLOW"
+    else
+        BILL_COLOR="$GREEN"
+    fi
+
+    # Build progress bar (5 segments)
+    bar_width=5
+    filled=$((billing_percent * bar_width / 100))
+    empty=$((bar_width - filled))
+    billing_bar="${BILL_COLOR}"
+    for ((i=0; i<filled; i++)); do billing_bar+="▮"; done
+    billing_bar+="${RESET}"
+    for ((i=0; i<empty; i++)); do billing_bar+="▯"; done
+
+    # Format time display
+    time_display="${hours}h ${minutes}m"
+
+    # Add separator if line2 has content
+    if [ -n "$line2" ]; then
+        separator=" | "
+    else
+        separator=""
+    fi
+
+    if [ "$MODE" = "label" ]; then
+        line2="${line2}${separator}Billing: ${BILL_COLOR}${billing_percent}%${RESET} ${billing_bar} (${time_display} / 5h)"
+    elif [ "$MODE" = "none" ]; then
+        line2="${line2}${separator}${BILL_COLOR}${billing_percent}%${RESET} ${billing_bar} (${time_display} / 5h)"
+    else
+        line2="${line2}${separator}⏱️ ${BILL_COLOR}${billing_percent}%${RESET} ${billing_bar} (${time_display} / 5h)"
+    fi
+fi
+
 # Update indicator (only shown when newer version available)
 remote_version=$(check_for_updates 2>/dev/null)
 if [ -n "$remote_version" ] && version_gt "$remote_version" "$CLAUDEBAR_VERSION"; then
