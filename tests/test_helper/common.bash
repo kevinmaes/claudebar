@@ -45,6 +45,31 @@ mock_input() {
 EOF
 }
 
+# Generate mock JSON input with billing/cost data
+mock_input_with_billing() {
+    local cwd="$1"
+    local duration_ms="${2:-0}"
+    local context_size="${3:-200000}"
+    local input_tokens="${4:-40000}"
+    local output_tokens="${5:-44000}"
+
+    cat <<EOF
+{
+    "workspace": {
+        "current_dir": "$cwd"
+    },
+    "context_window": {
+        "context_window_size": $context_size,
+        "total_input_tokens": $input_tokens,
+        "total_output_tokens": $output_tokens
+    },
+    "cost": {
+        "total_duration_ms": $duration_ms
+    }
+}
+EOF
+}
+
 # Generate minimal JSON input (no context window)
 mock_input_minimal() {
     local cwd="$1"
