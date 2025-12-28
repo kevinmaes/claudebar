@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, changeset-release/dev]
   pull_request:
     branches: [main, dev]
   # Allow manual trigger from Actions tab

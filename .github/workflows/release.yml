@@ -36,6 +36,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Create Version PR
+        id: changesets
         uses: changesets/action@v1
         with:
           title: 'Version Packages'
@@ -43,3 +44,16 @@ jobs:
           version: pnpm run version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Push empty commit to trigger CI on the Version Packages PR
+      # Uses PAT (CHANGESETS_TOKEN) because GITHUB_TOKEN pushes don't trigger workflows
+      - name: Trigger CI on Version Packages PR
+        if: steps.changesets.outputs.pullRequestNumber != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.CHANGESETS_TOKEN }}@github.com/${{ github.repository }}.git
+          git fetch origin changeset-release/dev
+          git checkout changeset-release/dev
+          git commit --allow-empty -m "chore: trigger CI [skip release]"
+          git push origin changeset-release/dev
