@@ -215,6 +215,10 @@ else
     mv "$tmp_file" "$SETTINGS_FILE"
 fi
 
+# Save installed version for future update comparisons
+INSTALLED_VERSION=$(grep -o 'CLAUDEBAR_VERSION="[^"]*"' "$STATUSLINE_SCRIPT" | cut -d'"' -f2)
+echo "$INSTALLED_VERSION" > "$CLAUDE_DIR/.claudebar-installed-version"
+
 echo ""
 echo "claudebar statusline installed successfully!"
 echo ""
