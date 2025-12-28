@@ -5,60 +5,42 @@ on:
     branches: [main, dev]
   pull_request:
     branches: [main, dev]
-  # Trigger CI when Release workflow completes (for changeset PRs)
-  # This is needed because GITHUB_TOKEN pushes don't trigger workflows
-  workflow_run:
-    workflows: [Release]
-    types: [completed]
-    branches: [dev]
+  # Allow manual trigger from Actions tab
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run tests on'
+        required: false
+        default: ''
+  # Allow trigger via PR comment "/run-ci"
+  issue_comment:
+    types: [created]
 
 jobs:
-  # Check if changeset-release branch exists and has a PR (for workflow_run trigger)
-  check-changeset-pr:
+  test:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_run' }}
-    outputs:
-      should_run: ${{ steps.check.outputs.should_run }}
-      pr_head_sha: ${{ steps.check.outputs.pr_head_sha }}
+    # Run on push/pull_request, workflow_dispatch, or "/run-ci" comment on a PR
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '/run-ci'))
+
     steps:
-      - name: Check for changeset PR
-        id: check
+      - name: Get PR branch for comment trigger
+        if: github.event_name == 'issue_comment'
+        id: get-branch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Check if Release workflow succeeded
-          if [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
-            echo "should_run=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
+          PR_DATA=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }})
+          echo "ref=$(echo "$PR_DATA" | jq -r '.head.ref')" >> $GITHUB_OUTPUT
+          echo "sha=$(echo "$PR_DATA" | jq -r '.head.sha')" >> $GITHUB_OUTPUT
 
-          # Check if changeset-release/dev branch exists and has a PR
-          PR_DATA=$(gh api repos/${{ github.repository }}/pulls \
-            --jq '.[] | select(.head.ref == "changeset-release/dev" and .state == "open") | {sha: .head.sha}' \
-            2>/dev/null || echo "")
-
-          if [ -n "$PR_DATA" ]; then
-            SHA=$(echo "$PR_DATA" | jq -r '.sha')
-            echo "should_run=true" >> $GITHUB_OUTPUT
-            echo "pr_head_sha=$SHA" >> $GITHUB_OUTPUT
-          else
-            echo "should_run=false" >> $GITHUB_OUTPUT
-          fi
-
-  test:
-    runs-on: ubuntu-latest
-    needs: [check-changeset-pr]
-    # Run for push/pull_request, or for workflow_run when there's a changeset PR
-    if: |
-      always() &&
-      (github.event_name != 'workflow_run' || needs.check-changeset-pr.outputs.should_run == 'true')
-
-    steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          # For workflow_run, checkout the changeset-release branch
-          ref: ${{ github.event_name == 'workflow_run' && 'changeset-release/dev' || github.ref }}
+          ref: ${{ github.event_name == 'issue_comment' && steps.get-branch.outputs.ref || github.event.inputs.branch || github.ref }}
 
       - name: Install dependencies
         run: |
@@ -74,36 +56,30 @@ jobs:
       - name: Run interactive tests
         run: make test-interactive
 
-      # Report status to changeset PR when triggered via workflow_run
-      - name: Report status to PR
-        if: ${{ always() && github.event_name == 'workflow_run' }}
+  test-macos:
+    runs-on: macos-latest
+    # Run on push/pull_request, workflow_dispatch, or "/run-ci" comment on a PR
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '/run-ci'))
+
+    steps:
+      - name: Get PR branch for comment trigger
+        if: github.event_name == 'issue_comment'
+        id: get-branch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          STATUS="${{ job.status }}"
-          SHA="${{ needs.check-changeset-pr.outputs.pr_head_sha }}"
-          if [ -n "$SHA" ]; then
-            gh api repos/${{ github.repository }}/statuses/$SHA \
-              -f state="$STATUS" \
-              -f context="CI / test (ubuntu)" \
-              -f description="Ubuntu tests $STATUS" \
-              -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          fi
+          PR_DATA=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }})
+          echo "ref=$(echo "$PR_DATA" | jq -r '.head.ref')" >> $GITHUB_OUTPUT
+          echo "sha=$(echo "$PR_DATA" | jq -r '.head.sha')" >> $GITHUB_OUTPUT
 
-  test-macos:
-    runs-on: macos-latest
-    needs: [check-changeset-pr]
-    # Run for push/pull_request, or for workflow_run when there's a changeset PR
-    if: |
-      always() &&
-      (github.event_name != 'workflow_run' || needs.check-changeset-pr.outputs.should_run == 'true')
-
-    steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          # For workflow_run, checkout the changeset-release branch
-          ref: ${{ github.event_name == 'workflow_run' && 'changeset-release/dev' || github.ref }}
+          ref: ${{ github.event_name == 'issue_comment' && steps.get-branch.outputs.ref || github.event.inputs.branch || github.ref }}
 
       - name: Install dependencies
         run: brew install bats-core jq shellcheck expect
@@ -116,19 +92,3 @@ jobs:
 
       - name: Run interactive tests
         run: make test-interactive
-
-      # Report status to changeset PR when triggered via workflow_run
-      - name: Report status to PR
-        if: ${{ always() && github.event_name == 'workflow_run' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          STATUS="${{ job.status }}"
-          SHA="${{ needs.check-changeset-pr.outputs.pr_head_sha }}"
-          if [ -n "$SHA" ]; then
-            gh api repos/${{ github.repository }}/statuses/$SHA \
-              -f state="$STATUS" \
-              -f context="CI / test (macos)" \
-              -f description="macOS tests $STATUS" \
-              -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          fi
