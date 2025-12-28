@@ -56,6 +56,17 @@ jobs:
       - name: Run interactive tests
         run: make test-interactive
 
+      - name: Report status to PR
+        if: ${{ always() && github.event_name == 'issue_comment' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/statuses/${{ steps.get-branch.outputs.sha }} \
+            -f state="${{ job.status }}" \
+            -f context="CI / test (ubuntu)" \
+            -f description="Ubuntu tests ${{ job.status }}" \
+            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
   test-macos:
     runs-on: macos-latest
     # Run on push/pull_request, workflow_dispatch, or "/run-ci" comment on a PR
@@ -92,3 +103,14 @@ jobs:
 
       - name: Run interactive tests
         run: make test-interactive
+
+      - name: Report status to PR
+        if: ${{ always() && github.event_name == 'issue_comment' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/statuses/${{ steps.get-branch.outputs.sha }} \
+            -f state="${{ job.status }}" \
+            -f context="CI / test (macos)" \
+            -f description="macOS tests ${{ job.status }}" \
+            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
