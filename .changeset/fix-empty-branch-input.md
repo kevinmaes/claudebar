@@ -2,4 +2,4 @@
 "claudebar": patch
 ---
 
-Change CI manual trigger input from branch name to PR number
+Auto-trigger CI on Version Packages PRs using PAT for empty commit push
