@@ -336,6 +336,10 @@ if [ -n "$context_size" ] && [ "$context_size" -gt 0 ] 2>/dev/null; then
     current_tokens=$(echo "$input" | jq '.context_window | (.total_input_tokens // 0) + (.total_output_tokens // 0)')
     percent=$((current_tokens * 100 / context_size))
 
+    # Get cache token breakdown (graceful fallback to 0 if not present)
+    cache_creation=$(echo "$input" | jq '.context_window.current_usage.cache_creation_input_tokens // 0')
+    cache_read=$(echo "$input" | jq '.context_window.current_usage.cache_read_input_tokens // 0')
+
     # Color based on usage threshold
     if [ "$percent" -ge 80 ]; then
         CTX_COLOR="$RED"
@@ -348,6 +352,8 @@ if [ -n "$context_size" ] && [ "$context_size" -gt 0 ] 2>/dev/null; then
     # Token counts in k format
     current_k=$((current_tokens / 1000))
     total_k=$((context_size / 1000))
+    cache_creation_k=$((cache_creation / 1000))
+    cache_read_k=$((cache_read / 1000))
 
     # Build progress bar (5 segments)
     bar_width=5
@@ -358,19 +364,29 @@ if [ -n "$context_size" ] && [ "$context_size" -gt 0 ] 2>/dev/null; then
     bar+="${RESET}"
     for ((i=0; i<empty; i++)); do bar+="▯"; done
 
-    # Format: 42% ▮▮▯▯▯ (84k/200k)
+    # Format: 42% ▮▮▯▯▯ (C: 40k | R: 44k / 200k) if cache data available
+    # Otherwise fallback: 42% ▮▮▯▯▯ (84k/200k)
     if [ -n "$line2" ]; then
         separator=" | "
     else
         separator=""
     fi
 
-    if [ "$MODE" = "label" ]; then
-        line2="${line2}${separator}Context: ${CTX_COLOR}${percent}%${RESET} ${bar} (${current_k}k/${total_k}k)"
-    elif [ "$MODE" = "none" ]; then
-        line2="${line2}${separator}${CTX_COLOR}${percent}%${RESET} ${bar} (${current_k}k/${total_k}k)"
+    # Determine display format based on cache data availability
+    if [ "$cache_creation" -gt 0 ] || [ "$cache_read" -gt 0 ]; then
+        # Cache data available - show breakdown
+        token_display="(C: ${cache_creation_k}k | R: ${cache_read_k}k / ${total_k}k)"
     else
-        line2="${line2}${separator}🧠 ${CTX_COLOR}${percent}%${RESET} ${bar} (${current_k}k/${total_k}k)"
+        # No cache data - fallback to simple format
+        token_display="(${current_k}k/${total_k}k)"
+    fi
+
+    if [ "$MODE" = "label" ]; then
+        line2="${line2}${separator}Context: ${CTX_COLOR}${percent}%${RESET} ${bar} ${token_display}"
+    elif [ "$MODE" = "none" ]; then
+        line2="${line2}${separator}${CTX_COLOR}${percent}%${RESET} ${bar} ${token_display}"
+    else
+        line2="${line2}${separator}🧠 ${CTX_COLOR}${percent}%${RESET} ${bar} ${token_display}"
     fi
 fi
 

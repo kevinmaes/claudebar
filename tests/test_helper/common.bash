@@ -70,6 +70,33 @@ mock_input_with_billing() {
 EOF
 }
 
+# Generate mock JSON input with cache token data
+mock_input_with_cache() {
+    local cwd="$1"
+    local cache_creation="${2:-40000}"
+    local cache_read="${3:-44000}"
+    local context_size="${4:-200000}"
+    local input_tokens="${5:-40000}"
+    local output_tokens="${6:-44000}"
+
+    cat <<EOF
+{
+    "workspace": {
+        "current_dir": "$cwd"
+    },
+    "context_window": {
+        "context_window_size": $context_size,
+        "total_input_tokens": $input_tokens,
+        "total_output_tokens": $output_tokens,
+        "current_usage": {
+            "cache_creation_input_tokens": $cache_creation,
+            "cache_read_input_tokens": $cache_read
+        }
+    }
+}
+EOF
+}
+
 # Generate minimal JSON input (no context window)
 mock_input_minimal() {
     local cwd="$1"
