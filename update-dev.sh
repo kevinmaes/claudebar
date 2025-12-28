@@ -40,12 +40,14 @@ extract_preferences() {
     # Extract MODE value (look for hardcoded value, not the default pattern)
     CURRENT_MODE=$(grep -o 'MODE="[^"]*"' "$script" | head -1 | cut -d'"' -f2)
     # If it contains ${, it's the default pattern, so use empty
+    # shellcheck disable=SC2016
     if [[ "$CURRENT_MODE" == *'${'* ]]; then
         CURRENT_MODE=""
     fi
 
     # Extract PATH_MODE value
     CURRENT_PATH_MODE=$(grep -o 'PATH_MODE="[^"]*"' "$script" | head -1 | cut -d'"' -f2)
+    # shellcheck disable=SC2016
     if [[ "$CURRENT_PATH_MODE" == *'${'* ]]; then
         CURRENT_PATH_MODE=""
     fi
