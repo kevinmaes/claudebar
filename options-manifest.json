@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1.0",
+  "options": [
+    {
+      "id": "display_mode",
+      "introducedInVersion": "0.2.0",
+      "description": "Display mode (emoji icons, text labels, or minimal)"
+    },
+    {
+      "id": "shell_command",
+      "introducedInVersion": "0.5.0",
+      "description": "Add claudebar command to shell"
+    },
+    {
+      "id": "path_mode",
+      "introducedInVersion": "0.6.0",
+      "description": "Path display mode (project name, path, or both)"
+    }
+  ]
+}

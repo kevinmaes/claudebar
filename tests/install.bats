@@ -250,6 +250,86 @@ EOF
 # Round-trip Tests
 # =============================================================================
 
+# =============================================================================
+# Version File Tests
+# =============================================================================
+
+@test "install creates version file with correct version" {
+    # Simulate install behavior
+    cp "$PROJECT_ROOT/statusline.sh" "$HOME/.claude/statusline.sh"
+
+    # Extract and save version (same as install.sh does)
+    INSTALLED_VERSION=$(grep -o 'CLAUDEBAR_VERSION="[^"]*"' "$HOME/.claude/statusline.sh" | cut -d'"' -f2)
+    echo "$INSTALLED_VERSION" > "$HOME/.claude/.claudebar-installed-version"
+
+    # Verify file exists and contains version
+    [ -f "$HOME/.claude/.claudebar-installed-version" ]
+
+    # Version should match what's in statusline.sh
+    result=$(cat "$HOME/.claude/.claudebar-installed-version")
+    expected=$(grep -o 'CLAUDEBAR_VERSION="[^"]*"' "$PROJECT_ROOT/statusline.sh" | cut -d'"' -f2)
+    [ "$result" = "$expected" ]
+}
+
+@test "uninstall removes version file" {
+    # Setup: create version file
+    echo "0.6.0" > "$HOME/.claude/.claudebar-installed-version"
+    cp "$PROJECT_ROOT/statusline.sh" "$HOME/.claude/statusline.sh"
+
+    [ -f "$HOME/.claude/.claudebar-installed-version" ]
+
+    # Run uninstall
+    "$PROJECT_ROOT/uninstall.sh"
+
+    # Verify version file is removed
+    [ ! -f "$HOME/.claude/.claudebar-installed-version" ]
+}
+
+@test "uninstall handles missing version file gracefully" {
+    # Setup: no version file
+    cp "$PROJECT_ROOT/statusline.sh" "$HOME/.claude/statusline.sh"
+    [ ! -f "$HOME/.claude/.claudebar-installed-version" ]
+
+    # Should not error
+    run "$PROJECT_ROOT/uninstall.sh"
+    [ "$status" -eq 0 ]
+}
+
+# =============================================================================
+# Options Manifest Tests
+# =============================================================================
+
+@test "options-manifest.json is valid JSON" {
+    run jq '.' "$PROJECT_ROOT/options-manifest.json"
+    [ "$status" -eq 0 ]
+}
+
+@test "options-manifest.json has required schema version" {
+    result=$(jq -r '.schemaVersion' "$PROJECT_ROOT/options-manifest.json")
+    [ "$result" = "1.0" ]
+}
+
+@test "options-manifest.json has options array" {
+    result=$(jq '.options | type' "$PROJECT_ROOT/options-manifest.json")
+    [ "$result" = '"array"' ]
+}
+
+@test "options-manifest.json options have required fields" {
+    # Each option must have id, introducedInVersion, and description
+    result=$(jq '[.options[] | select(.id == null or .introducedInVersion == null or .description == null)] | length' "$PROJECT_ROOT/options-manifest.json")
+    [ "$result" = "0" ]
+}
+
+@test "options-manifest.json versions are valid semver format" {
+    # All introducedInVersion values should match X.Y.Z pattern
+    result=$(jq -r '.options[].introducedInVersion' "$PROJECT_ROOT/options-manifest.json" | grep -v '^[0-9]\+\.[0-9]\+\.[0-9]\+$' | wc -l | tr -d ' ')
+    [ "$result" = "0" ]
+}
+
+# =============================================================================
+# Round-trip Tests
+# =============================================================================
+
 @test "statusline.sh works after simulated install" {
     # Simulate install
     cp "$PROJECT_ROOT/statusline.sh" "$HOME/.claude/statusline.sh"

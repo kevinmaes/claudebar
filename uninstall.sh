@@ -52,6 +52,13 @@ if [ -f "$CACHE_FILE" ]; then
     echo "Removed version cache"
 fi
 
+# Remove installed version file
+VERSION_FILE="$CLAUDE_DIR/.claudebar-installed-version"
+if [ -f "$VERSION_FILE" ]; then
+    rm "$VERSION_FILE"
+    echo "Removed installed version file"
+fi
+
 # Remove claudebar shell command from shell configs
 for rc_file in "$HOME/.zshrc" "$HOME/.bashrc"; do
     if [ -f "$rc_file" ]; then
