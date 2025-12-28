@@ -2,4 +2,4 @@
 "claudebar": patch
 ---
 
-Fix empty branch input handling in workflow_dispatch CI trigger
+Change CI manual trigger input from branch name to PR number
