@@ -455,6 +455,87 @@ teardown() {
     [[ "$result" != *"%"* ]]
 }
 
+# =============================================================================
+# Cache Token Breakdown Tests
+# =============================================================================
+
+@test "displays cache token breakdown when cache data available" {
+    TEST_REPO=$(setup_git_repo)
+
+    # C: 40k, R: 44k, context_size: 200k
+    result=$(mock_input_with_cache "$TEST_REPO" 40000 44000 200000 40000 44000 | "$STATUSLINE" | strip_colors)
+
+    [[ "$result" == *"C: 40k"* ]]
+    [[ "$result" == *"R: 44k"* ]]
+    [[ "$result" == *"/ 200k"* ]]
+}
+
+@test "falls back to simple format when no cache data" {
+    TEST_REPO=$(setup_git_repo)
+
+    # Standard input without cache data
+    result=$(mock_input "$TEST_REPO" 200000 40000 44000 | "$STATUSLINE" | strip_colors)
+
+    # Should show simple format (84k/200k) not cache breakdown
+    [[ "$result" == *"84k/200k"* ]]
+    [[ "$result" != *"C:"* ]]
+    [[ "$result" != *"R:"* ]]
+}
+
+@test "cache breakdown with zero creation tokens" {
+    TEST_REPO=$(setup_git_repo)
+
+    # C: 0, R: 100k (all reads, no creation)
+    result=$(mock_input_with_cache "$TEST_REPO" 0 100000 200000 50000 50000 | "$STATUSLINE" | strip_colors)
+
+    [[ "$result" == *"C: 0k"* ]]
+    [[ "$result" == *"R: 100k"* ]]
+}
+
+@test "cache breakdown with zero read tokens" {
+    TEST_REPO=$(setup_git_repo)
+
+    # C: 50k, R: 0 (all creation, no reads)
+    result=$(mock_input_with_cache "$TEST_REPO" 50000 0 200000 25000 25000 | "$STATUSLINE" | strip_colors)
+
+    [[ "$result" == *"C: 50k"* ]]
+    [[ "$result" == *"R: 0k"* ]]
+}
+
+@test "cache breakdown in icon mode shows brain emoji" {
+    TEST_REPO=$(setup_git_repo)
+
+    export CLAUDEBAR_MODE=icon
+    result=$(mock_input_with_cache "$TEST_REPO" 40000 44000 | "$STATUSLINE")
+    unset CLAUDEBAR_MODE
+
+    [[ "$result" == *"🧠"* ]]
+    [[ "$result" == *"C: 40k"* ]]
+}
+
+@test "cache breakdown in label mode shows Context prefix" {
+    TEST_REPO=$(setup_git_repo)
+
+    export CLAUDEBAR_MODE=label
+    result=$(mock_input_with_cache "$TEST_REPO" 40000 44000 | "$STATUSLINE" | strip_colors)
+    unset CLAUDEBAR_MODE
+
+    [[ "$result" == *"Context:"* ]]
+    [[ "$result" == *"C: 40k"* ]]
+}
+
+@test "cache breakdown in none mode shows minimal output" {
+    TEST_REPO=$(setup_git_repo)
+
+    export CLAUDEBAR_MODE=none
+    result=$(mock_input_with_cache "$TEST_REPO" 40000 44000 | "$STATUSLINE" | strip_colors)
+    unset CLAUDEBAR_MODE
+
+    [[ "$result" != *"🧠"* ]]
+    [[ "$result" != *"Context:"* ]]
+    [[ "$result" == *"C: 40k"* ]]
+}
+
 @test "handles empty git repo (no commits)" {
     TEST_REPO=$(setup_git_repo)
 

@@ -10,7 +10,7 @@ A bash statusline for Claude Code.
 
 ```
 📂 parent/current | 🌿 main | 📄 S: 0 | U: 2 | A: 1
-claudebar v0.3.0 | 🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (84k/200k)
+🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (C: 40k | R: 44k / 200k)
 ```
 
 ## Why claudebar?
@@ -58,7 +58,7 @@ Or use the built-in update command:
 The statusline shows a yellow `↑` indicator when a newer version is available:
 
 ```
-🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (84k/200k) | ↑ claudebar v0.6.0
+🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (C: 40k | R: 44k / 200k) | ↑ claudebar v0.6.0
 ```
 
 Version checks are cached for 24 hours. To manually check:
@@ -151,7 +151,7 @@ sudo dnf install jq
   <tr>
     <td>🧠</td>
     <td></td>
-    <td>Context window usage (color-coded: green &lt;50%, yellow 50-80%, red &gt;80%)</td>
+    <td>Context window usage with cache breakdown (C: creation, R: read tokens)</td>
   </tr>
   <tr>
     <td>↑</td>
@@ -208,7 +208,7 @@ Add the export to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) to persist 
 The statusline shows when a newer version of Claude Code is available in the VS Code marketplace:
 
 ```text
-🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (84k/200k) | ↑ CC v2.1.0
+🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (C: 40k | R: 44k / 200k) | ↑ CC v2.1.0
 ```
 
 This checks the VS Code/Cursor extensions directory to detect your installed version and compares it against the latest marketplace version. Checks are cached for 24 hours.
