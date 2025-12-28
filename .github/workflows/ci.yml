@@ -40,7 +40,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'issue_comment' && steps.get-branch.outputs.ref || github.event.inputs.branch || github.ref }}
+          ref: ${{ github.event_name == 'issue_comment' && steps.get-branch.outputs.ref || (github.event.inputs.branch != '' && github.event.inputs.branch) || github.ref }}
 
       - name: Install dependencies
         run: |
@@ -90,7 +90,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'issue_comment' && steps.get-branch.outputs.ref || github.event.inputs.branch || github.ref }}
+          ref: ${{ github.event_name == 'issue_comment' && steps.get-branch.outputs.ref || (github.event.inputs.branch != '' && github.event.inputs.branch) || github.ref }}
 
       - name: Install dependencies
         run: brew install bats-core jq shellcheck expect
