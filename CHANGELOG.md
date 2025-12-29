@@ -1,5 +1,27 @@
 # claudebar
 
+## 0.7.0
+
+### Minor Changes
+
+- 3a091b8: Add 5-hour billing block progress indicator showing session duration as percentage of Claude's billing period
+- 3331a90: Add cache token breakdown to context display showing cache creation vs read tokens (C: 40k | R: 44k / 200k)
+- 3b65239: Add retroactive CLI options during update
+
+  - Update script now offers interactive prompts for features introduced since your last installed version
+  - Added options-manifest.json to track which options were introduced in which version
+  - Version file persists at ~/.claude/.claudebar-installed-version for version tracking
+  - Added --no-prompts flag to skip prompts (with warning about potentially missed features)
+  - Existing user preferences (MODE, PATH_MODE) are preserved during updates
+
+### Patch Changes
+
+- ff260f4: Auto-trigger CI on Version Packages PRs by pushing empty commit with PAT
+- 155b60d: Notify user when no missed prompts during update
+
+  - When updating and there are no new options to configure, the user is now notified with "All features are already configured. No new options to show."
+  - This clarifies why no interactive prompts appeared during the update process
+
 ## 0.6.0
 
 ### Minor Changes
