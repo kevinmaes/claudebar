@@ -281,6 +281,12 @@ else
                         ;;
                 esac
             done
+
+            # Notify user if no new options were found
+            if [ -z "$NEW_OPTIONS" ]; then
+                echo ""
+                echo "All features are already configured. No new options to show."
+            fi
         else
             echo "Warning: Could not download options manifest. Skipping retroactive prompts."
         fi
