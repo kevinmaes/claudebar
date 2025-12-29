@@ -5,43 +5,14 @@ on:
     branches: [main, dev, changeset-release/dev]
   pull_request:
     branches: [main, dev]
-  # Allow manual trigger from Actions tab
-  workflow_dispatch:
-    inputs:
-      pr_number:
-        description: 'PR number to run tests on (leave empty for current branch)'
-        required: false
-        default: ''
-  # Allow trigger via PR comment "/run-ci"
-  issue_comment:
-    types: [created]
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    # Run on push/pull_request, workflow_dispatch, or "/run-ci" comment on a PR
-    if: |
-      github.event_name == 'push' ||
-      github.event_name == 'pull_request' ||
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '/run-ci'))
 
     steps:
-      - name: Get PR branch
-        if: github.event_name == 'issue_comment' || (github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '')
-        id: get-branch
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PR_NUM="${{ github.event_name == 'issue_comment' && github.event.issue.number || github.event.inputs.pr_number }}"
-          PR_DATA=$(gh api repos/${{ github.repository }}/pulls/$PR_NUM)
-          echo "ref=$(echo "$PR_DATA" | jq -r '.head.ref')" >> $GITHUB_OUTPUT
-          echo "sha=$(echo "$PR_DATA" | jq -r '.head.sha')" >> $GITHUB_OUTPUT
-
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.get-branch.outputs.ref || github.ref }}
 
       - name: Install dependencies
         run: |
@@ -57,42 +28,12 @@ jobs:
       - name: Run interactive tests
         run: make test-interactive
 
-      - name: Report status to PR
-        if: ${{ always() && steps.get-branch.outputs.sha != '' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh api repos/${{ github.repository }}/statuses/${{ steps.get-branch.outputs.sha }} \
-            -f state="${{ job.status }}" \
-            -f context="CI / test (ubuntu)" \
-            -f description="Ubuntu tests ${{ job.status }}" \
-            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-
   test-macos:
     runs-on: macos-latest
-    # Run on push/pull_request, workflow_dispatch, or "/run-ci" comment on a PR
-    if: |
-      github.event_name == 'push' ||
-      github.event_name == 'pull_request' ||
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '/run-ci'))
 
     steps:
-      - name: Get PR branch
-        if: github.event_name == 'issue_comment' || (github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '')
-        id: get-branch
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PR_NUM="${{ github.event_name == 'issue_comment' && github.event.issue.number || github.event.inputs.pr_number }}"
-          PR_DATA=$(gh api repos/${{ github.repository }}/pulls/$PR_NUM)
-          echo "ref=$(echo "$PR_DATA" | jq -r '.head.ref')" >> $GITHUB_OUTPUT
-          echo "sha=$(echo "$PR_DATA" | jq -r '.head.sha')" >> $GITHUB_OUTPUT
-
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.get-branch.outputs.ref || github.ref }}
 
       - name: Install dependencies
         run: brew install bats-core jq shellcheck expect
@@ -105,14 +46,3 @@ jobs:
 
       - name: Run interactive tests
         run: make test-interactive
-
-      - name: Report status to PR
-        if: ${{ always() && steps.get-branch.outputs.sha != '' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh api repos/${{ github.repository }}/statuses/${{ steps.get-branch.outputs.sha }} \
-            -f state="${{ job.status }}" \
-            -f context="CI / test (macos)" \
-            -f description="macOS tests ${{ job.status }}" \
-            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
