@@ -1,6 +1,6 @@
 {
   "name": "claudebar",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "private": true,
   "description": "A bash statusline for Claude Code",
   "type": "module",
