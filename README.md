@@ -8,7 +8,7 @@
 
 A bash statusline for Claude Code.
 
-![claudebar statusline preview](assets/claudebar-flat.svg)
+![claudebar statusline preview](assets/claudebar-annotated.svg)
 
 ## Why claudebar?
 
@@ -36,6 +36,7 @@ curl -fsSL https://kevinmaes.github.io/claudebar/install.sh | bash
 ```bash
 curl -fsSL https://raw.githubusercontent.com/kevinmaes/claudebar/main/install.sh | bash
 ```
+
 </details>
 
 ## Update
@@ -107,6 +108,7 @@ sudo apt install jq
 # Fedora
 sudo dnf install jq
 ```
+
 </details>
 
 ## What it displays
@@ -174,11 +176,11 @@ export CLAUDEBAR_MODE=label  # Text labels
 export CLAUDEBAR_MODE=none   # Minimal output
 ```
 
-| Mode | Example |
-|------|---------|
-| `icon` | `📂 parent/current \| 🌿 main \| 📄 S: 0 \| U: 2 \| A: 1` |
+| Mode    | Example                                                                       |
+| ------- | ----------------------------------------------------------------------------- |
+| `icon`  | `📂 parent/current \| 🌿 main \| 📄 S: 0 \| U: 2 \| A: 1`                     |
 | `label` | `DIR: parent/current \| BRANCH: main \| STAGED: 0 \| UNSTAGED: 2 \| ADDED: 1` |
-| `none` | `parent/current \| main \| S: 0 \| U: 2 \| A: 1` |
+| `none`  | `parent/current \| main \| S: 0 \| U: 2 \| A: 1`                              |
 
 ### Path Display
 
@@ -190,11 +192,11 @@ export CLAUDEBAR_DISPLAY_PATH=path     # Default - shows parent/current
 export CLAUDEBAR_DISPLAY_PATH=both     # Shows project (parent/current)
 ```
 
-| Mode | Example | Description |
-| ---- | ------- | ----------- |
-| `project` | `📂 claudebar` | Just the folder name (recommended) |
-| `path` | `📂 kevinmaes/claudebar` | Parent folder + current folder |
-| `both` | `📂 claudebar (kevinmaes/claudebar)` | Both formats combined |
+| Mode      | Example                              | Description                        |
+| --------- | ------------------------------------ | ---------------------------------- |
+| `project` | `📂 claudebar`                       | Just the folder name (recommended) |
+| `path`    | `📂 kevinmaes/claudebar`             | Parent folder + current folder     |
+| `both`    | `📂 claudebar (kevinmaes/claudebar)` | Both formats combined              |
 
 Using `project` mode is recommended when working with multiple projects, as `parent/current` can be confusing.
 
@@ -218,11 +220,11 @@ export CLAUDEBAR_SHOW_CLAUDE_UPDATE=false
 
 ## CLI Flags
 
-| Flag | Description |
-|------|-------------|
-| `--version`, `-v` | Show version and exit |
-| `--check-update` | Check for available updates |
-| `--update` | Download and install latest version |
+| Flag               | Description                                       |
+| ------------------ | ------------------------------------------------- |
+| `--version`, `-v`  | Show version and exit                             |
+| `--check-update`   | Check for available updates                       |
+| `--update`         | Download and install latest version               |
 | `--path-mode=MODE` | Override path display (`path`, `project`, `both`) |
 
 ## Customization
@@ -232,6 +234,7 @@ After installation, edit `~/.claude/statusline.sh` to customize the statusline.
 ## How it works
 
 The installer:
+
 1. Downloads `statusline.sh` to `~/.claude/`
 2. Updates `~/.claude/settings.json` with the statusline command
 3. Claude Code reads JSON workspace data and pipes it to the script
@@ -255,16 +258,16 @@ sudo apt install bats shellcheck jq expect
 
 ### Commands
 
-| Command | Description |
-|---------|-------------|
-| `make lint` | Run shellcheck on all scripts |
-| `make test` | Run BATS unit tests |
-| `make test-interactive` | Run expect interactive tests |
-| `make test-all` | Run all tests (BATS + expect) |
-| `make preview` | Quick preview with sample JSON |
-| `make install` | Run install.sh locally |
-| `make update` | Run update.sh locally |
-| `make uninstall` | Run uninstall.sh locally |
+| Command                 | Description                    |
+| ----------------------- | ------------------------------ |
+| `make lint`             | Run shellcheck on all scripts  |
+| `make test`             | Run BATS unit tests            |
+| `make test-interactive` | Run expect interactive tests   |
+| `make test-all`         | Run all tests (BATS + expect)  |
+| `make preview`          | Quick preview with sample JSON |
+| `make install`          | Run install.sh locally         |
+| `make update`           | Run update.sh locally          |
+| `make uninstall`        | Run uninstall.sh locally       |
 
 ### Running tests
 
@@ -289,12 +292,12 @@ bats --verbose-run tests/
 
 Recommended extensions for working with this codebase:
 
-| Extension | ID | Purpose |
-|-----------|-----|---------|
-| ShellCheck | `timonwong.shellcheck` | Linting for shell scripts |
-| Bash IDE | `mads-hartmann.bash-ide-vscode` | Syntax highlighting, intellisense for `.sh` files |
-| Bats | `jetmartin.bats` | Syntax highlighting for `.bats` test files |
-| YAML | `redhat.vscode-yaml` | GitHub workflow files |
+| Extension  | ID                              | Purpose                                           |
+| ---------- | ------------------------------- | ------------------------------------------------- |
+| ShellCheck | `timonwong.shellcheck`          | Linting for shell scripts                         |
+| Bash IDE   | `mads-hartmann.bash-ide-vscode` | Syntax highlighting, intellisense for `.sh` files |
+| Bats       | `jetmartin.bats`                | Syntax highlighting for `.bats` test files        |
+| YAML       | `redhat.vscode-yaml`            | GitHub workflow files                             |
 
 Install all at once:
 
