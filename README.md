@@ -8,10 +8,7 @@
 
 A bash statusline for Claude Code.
 
-```
-📂 parent/current | 🌿 main | 📄 S: 0 | U: 2 | A: 1
-🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (C: 40k | R: 44k / 200k)
-```
+![claudebar statusline preview](assets/claudebar-flat.svg)
 
 ## Why claudebar?
 

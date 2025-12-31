@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>claudebar Social Preview</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 1280px;
+      height: 640px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Subtle grid pattern */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    /* Glow effects */
+    .glow-1 {
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(34, 211, 238, 0.15) 0%, transparent 70%);
+      top: -100px;
+      right: -100px;
+      pointer-events: none;
+    }
+
+    .glow-2 {
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, transparent 70%);
+      bottom: -50px;
+      left: -50px;
+      pointer-events: none;
+    }
+
+    .content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+      z-index: 1;
+    }
+
+    .logo {
+      font-size: 64px;
+      margin-bottom: -8px;
+    }
+
+    .title {
+      font-size: 72px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -2px;
+    }
+
+    .tagline {
+      font-size: 28px;
+      color: #94a3b8;
+      margin-top: -16px;
+    }
+
+    .preview-container {
+      margin-top: 16px;
+      padding: 24px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+
+    .preview-container img {
+      display: block;
+    }
+
+    .url {
+      position: absolute;
+      bottom: 24px;
+      font-size: 18px;
+      color: #475569;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-1"></div>
+  <div class="glow-2"></div>
+
+  <div class="content">
+    <div class="logo">🤖</div>
+    <h1 class="title">claudebar</h1>
+    <p class="tagline">A bash statusline for Claude Code</p>
+
+    <div class="preview-container">
+      <img src="claudebar-flat.svg" alt="claudebar preview" width="700">
+    </div>
+  </div>
+
+  <p class="url">github.com/kevinmaes/claudebar</p>
+</body>
+</html>
