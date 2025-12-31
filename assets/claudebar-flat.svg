@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 100" width="700" height="100">
+  <defs>
+    <!-- Front face gradient -->
+    <linearGradient id="frontGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1f1f23"/>
+      <stop offset="100%" stop-color="#121214"/>
+    </linearGradient>
+    
+    <!-- Screen glare -->
+    <linearGradient id="glare" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.04)"/>
+      <stop offset="30%" stop-color="rgba(255,255,255,0)"/>
+    </linearGradient>
+    
+    <!-- Shadow -->
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+  
+  <!-- Main bar -->
+  <g transform="translate(350, 50)" filter="url(#shadow)">
+    <!-- Front face -->
+    <rect x="-330" y="-38" width="660" height="76" rx="8" fill="url(#frontGrad)" stroke="#2a2a2e" stroke-width="1"/>
+    
+    <!-- Screen glare overlay -->
+    <rect x="-330" y="-38" width="660" height="76" rx="8" fill="url(#glare)"/>
+    
+    <!-- Line 1: Repo info -->
+    <g transform="translate(-310, -12)">
+      <text x="0" y="0" font-size="14">📁</text>
+      <text x="24" y="0" fill="#fcd34d" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" font-weight="500">kevinmaes/claudebar</text>
+      <text x="190" y="0" fill="#52525b" font-family="ui-monospace, monospace" font-size="13">|</text>
+      <text x="210" y="0" font-size="14">🌿</text>
+      <text x="232" y="0" fill="#4ade80" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" font-weight="bold">dev</text>
+      <text x="273" y="0" fill="#52525b" font-family="ui-monospace, monospace" font-size="13">|</text>
+      <text x="293" y="0" font-size="14">📄</text>
+      <text x="315" y="0" fill="#4ade80" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13">S: 3</text>
+      <text x="358" y="0" fill="#52525b" font-family="ui-monospace, monospace" font-size="13">|</text>
+      <text x="378" y="0" fill="#facc15" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13">U: 7</text>
+      <text x="421" y="0" fill="#52525b" font-family="ui-monospace, monospace" font-size="13">|</text>
+      <text x="441" y="0" fill="#f87171" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13">A: 2</text>
+    </g>
+    
+    <!-- Line 2: Model & metrics -->
+    <g transform="translate(-310, 16)">
+      <text x="0" y="0" font-size="14">🤖</text>
+      <text x="24" y="0" fill="#67e8f9" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13">Opus 4.5</text>
+      <text x="105" y="0" fill="#52525b" font-family="ui-monospace, monospace" font-size="13">|</text>
+      <text x="125" y="0" font-size="14">🧠</text>
+      <text x="147" y="0" fill="#facc15" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13">25%</text>
+      <text x="190" y="0" fill="#22d3d1" font-family="ui-monospace, monospace" font-size="12">██</text>
+      <text x="214" y="0" fill="#6b7280" font-family="ui-monospace, monospace" font-size="12">░░░░</text>
+      <text x="262" y="0" fill="#9ca3af" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">(50k/200k)</text>
+      <text x="358" y="0" fill="#52525b" font-family="ui-monospace, monospace" font-size="13">|</text>
+      <text x="378" y="0" font-size="14">⏱️</text>
+      <text x="400" y="0" fill="#4ade80" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13">12%</text>
+      <text x="443" y="0" fill="#34d399" font-family="ui-monospace, monospace" font-size="12">█</text>
+      <text x="455" y="0" fill="#6b7280" font-family="ui-monospace, monospace" font-size="12">░░░░░</text>
+      <text x="515" y="0" fill="#9ca3af" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">(0h 36m / 5h)</text>
+    </g>
+  </g>
+</svg>
