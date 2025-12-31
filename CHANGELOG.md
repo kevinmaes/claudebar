@@ -1,5 +1,11 @@
 # claudebar
 
+## 0.7.1
+
+### Patch Changes
+
+- 67c3efb: Add social preview image and assets folder for README display
+
 ## 0.7.0
 
 ### Minor Changes
