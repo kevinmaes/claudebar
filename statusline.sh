@@ -20,7 +20,7 @@
 #   --path-mode=MODE       Override CLAUDEBAR_DISPLAY_PATH (path|project|both)
 
 # Version (updated by changesets)
-CLAUDEBAR_VERSION="0.7.0"
+CLAUDEBAR_VERSION="0.7.1"
 
 # Cache settings
 CACHE_FILE="$HOME/.claude/.claudebar-version-cache"
