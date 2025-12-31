@@ -1,4 +1,4 @@
-# Contributing to claudebar
+# Contributing to Claudebar
 
 Thanks for your interest in contributing!
 

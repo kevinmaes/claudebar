@@ -1,4 +1,4 @@
-# claudebar
+# Claudebar
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub release](https://img.shields.io/github/v/release/kevinmaes/claudebar?color=blue)](https://github.com/kevinmaes/claudebar/releases)
@@ -10,11 +10,11 @@ A bash statusline for Claude Code.
 
 ![claudebar statusline preview](assets/claudebar-annotated.svg)
 
-## Why claudebar?
+## Why Claudebar?
 
 **Lightweight & Fast** - Pure bash with no runtime dependencies beyond `jq`. No Node.js required.
 
-**Install in Seconds** - One curl command and you're running. Built-in update checker notifies you of new releases with a simple `↑` indicator.
+**Install in Seconds** - One curl command and you're running. Built-in update checker notifies you when new versions of Claudebar or Claude Code are available.
 
 **Git-First Design** - See your branch, staged files, unstaged changes, and untracked files at a glance. Includes worktree support for advanced workflows.
 
@@ -116,51 +116,53 @@ sudo dnf install jq
 <table>
   <tr>
     <th>Icon</th>
-    <th>Files</th>
+    <th>Name</th>
     <th>Meaning</th>
   </tr>
   <tr>
     <td>📂</td>
-    <td></td>
-    <td>Abbreviated path (last two segments)</td>
+    <td>Project</td>
+    <td>Project path (configurable: project name, parent/current, or both)</td>
   </tr>
   <tr>
     <td>🌳</td>
-    <td></td>
-    <td>Git worktree indicator (only shown in worktrees)</td>
+    <td>Git worktree</td>
+    <td>Worktree indicator (only shown in worktrees)</td>
   </tr>
   <tr>
     <td>🌿</td>
-    <td></td>
-    <td>Current git branch (green)</td>
+    <td>Git branch</td>
+    <td>Current branch (green)</td>
   </tr>
   <tr>
-    <td rowspan="3" style="vertical-align: middle">📄</td>
-    <td>S</td>
+    <td>📄</td>
+    <td>S - Staged files</td>
     <td>Staged file count</td>
   </tr>
   <tr>
-    <td>U</td>
+    <td>📄</td>
+    <td>U - Unstaged files</td>
     <td>Unstaged file count</td>
   </tr>
   <tr>
-    <td>A</td>
+    <td>📄</td>
+    <td>A - Untracked files</td>
     <td>Untracked/added file count</td>
   </tr>
   <tr>
     <td>🧠</td>
-    <td></td>
+    <td>Context</td>
     <td>Context window usage with cache breakdown (C: creation, R: read tokens)</td>
   </tr>
   <tr>
     <td>↑</td>
-    <td></td>
-    <td>claudebar update available (yellow, shown when newer release exists)</td>
+    <td>Claudebar update</td>
+    <td>Update available (yellow, shown when newer release exists)</td>
   </tr>
   <tr>
     <td>↑ CC</td>
-    <td></td>
-    <td>Claude Code update available (yellow, shown when newer version exists in VS Code marketplace)</td>
+    <td>Claude Code update</td>
+    <td>Update available (yellow, shown when newer version exists in VS Code marketplace)</td>
   </tr>
 </table>
 
