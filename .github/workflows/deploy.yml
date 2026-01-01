@@ -79,11 +79,25 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup Node.js
+        if: steps.tag-check.outputs.exists == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Publish to npm
+        if: steps.tag-check.outputs.exists == 'false'
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Summary
         run: |
           echo "✅ Successfully merged dev into main"
           if [ "${{ steps.tag-check.outputs.exists }}" == "false" ]; then
             echo "📦 Created GitHub Release v${{ steps.get-version.outputs.version }}"
+            echo "📦 Published to npm as claudebar@${{ steps.get-version.outputs.version }}"
           else
             echo "⏭️ Skipped release creation (tag v${{ steps.get-version.outputs.version }} already exists)"
           fi
