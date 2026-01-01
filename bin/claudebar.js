@@ -18,10 +18,10 @@ const showHelp = () => {
 claudebar - A bash statusline for Claude Code
 
 Usage:
-  npx claudebar <command>
+  npx claudebar [command]
 
 Commands:
-  install      Install claudebar statusline
+  install      Install claudebar statusline (default)
   uninstall    Remove claudebar statusline
   update       Update to the latest version
 
@@ -30,9 +30,9 @@ Options:
   --help, -h       Show this help message
 
 Examples:
-  npx claudebar install
-  npx claudebar update
-  npx claudebar uninstall
+  npx claudebar            # Install (default)
+  npx claudebar update     # Update to latest
+  npx claudebar uninstall  # Remove
 
 Documentation: https://github.com/kevinmaes/claudebar
 `);
@@ -74,7 +74,7 @@ const main = () => {
   const args = process.argv.slice(2);
   const command = args[0];
 
-  if (!command || command === '--help' || command === '-h') {
+  if (command === '--help' || command === '-h') {
     showHelp();
     process.exit(0);
   }
@@ -84,14 +84,15 @@ const main = () => {
     process.exit(0);
   }
 
-  const handler = commands[command];
-  if (handler) {
-    handler();
-  } else {
+  // Default to install if no command given
+  const handler = commands[command] ?? commands.install;
+  if (command && !commands[command]) {
     console.error(`Unknown command: ${command}`);
     console.error('Run "npx claudebar --help" for usage.');
     process.exit(1);
   }
+
+  handler();
 };
 
 main();

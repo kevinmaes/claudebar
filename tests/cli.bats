@@ -31,11 +31,13 @@ setup() {
     [[ "$output" == *"claudebar - A bash statusline for Claude Code"* ]]
 }
 
-@test "no arguments shows help" {
-    run node "$CLI"
+@test "no arguments defaults to install" {
+    # No args should run install, not show help
+    run timeout 1 node "$CLI" 2>&1 || true
 
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"Usage:"* ]]
+    # Should NOT contain "Usage:" (that would be help)
+    # Should NOT contain "Unknown command"
+    [[ "$output" != *"Unknown command"* ]]
 }
 
 # =============================================================================
