@@ -1,5 +1,23 @@
 # Claudebar
 
+## 0.9.0
+
+### Minor Changes
+
+- a2e10a2: Detect existing installation and prompt user to update, reinstall, or cancel
+- 5514af1: Add npm package distribution with CLI wrapper
+
+  - Publish claudebar to npm for `npx claudebar install` usage
+  - Create Node.js CLI wrapper that spawns existing bash scripts
+  - Add npm metadata (repository, keywords, license, author)
+  - Update README with npx installation option
+
+- bb2c93f: Skip shell function prompt when installing via npx
+
+### Patch Changes
+
+- 5eac30e: Default to install when running npx claudebar without arguments
+
 ## 0.8.0
 
 ### Minor Changes
