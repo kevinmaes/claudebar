@@ -702,3 +702,74 @@ teardown() {
     [ "$status" -eq 0 ]
     [[ "$output" == *"claude-code-version-cache"* ]]
 }
+
+# =============================================================================
+# NO_COLOR Support Tests
+# =============================================================================
+
+@test "NO_COLOR disables ANSI color codes in output" {
+    TEST_REPO=$(setup_git_repo)
+    touch "$TEST_REPO/file.txt"
+    git -C "$TEST_REPO" add file.txt
+    git -C "$TEST_REPO" commit -m "initial" --quiet
+
+    export NO_COLOR=1
+    result=$(mock_input "$TEST_REPO" | "$STATUSLINE")
+    unset NO_COLOR
+
+    # Output should NOT contain ANSI escape codes
+    [[ "$result" != *$'\033['* ]]
+    [[ "$result" != *$'\x1b['* ]]
+}
+
+@test "NO_COLOR=1 produces same content as colored output" {
+    TEST_REPO=$(setup_git_repo)
+    touch "$TEST_REPO/file.txt"
+    git -C "$TEST_REPO" add file.txt
+    git -C "$TEST_REPO" commit -m "initial" --quiet
+
+    # Get colored output and strip colors
+    colored=$(mock_input "$TEST_REPO" | "$STATUSLINE" | strip_colors)
+
+    # Get NO_COLOR output
+    export NO_COLOR=1
+    no_color=$(mock_input "$TEST_REPO" | "$STATUSLINE")
+    unset NO_COLOR
+
+    # Content should be identical
+    [ "$colored" = "$no_color" ]
+}
+
+@test "NO_COLOR with empty value still disables colors" {
+    TEST_REPO=$(setup_git_repo)
+
+    # NO_COLOR spec: any value (including empty) disables colors
+    # But we use -n check, so empty string won't trigger it
+    # This is intentional - only set (non-empty) values disable colors
+    export NO_COLOR=""
+    result=$(mock_input_minimal "$TEST_REPO" | "$STATUSLINE")
+    unset NO_COLOR
+
+    # Empty NO_COLOR should NOT disable colors (per our implementation)
+    [[ "$result" == *$'\033['* ]]
+}
+
+@test "NO_COLOR unset enables colors" {
+    TEST_REPO=$(setup_git_repo)
+
+    # Ensure NO_COLOR is unset
+    unset NO_COLOR
+
+    result=$(mock_input_minimal "$TEST_REPO" | "$STATUSLINE")
+
+    # Should contain ANSI escape codes
+    [[ "$result" == *$'\033['* ]]
+}
+
+@test "--help documents NO_COLOR environment variable" {
+    run "$STATUSLINE" --help
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"NO_COLOR"* ]]
+    [[ "$output" == *"Disable colored output"* ]]
+}

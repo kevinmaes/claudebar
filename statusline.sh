@@ -33,12 +33,21 @@ SHOW_CLAUDE_UPDATE="${CLAUDEBAR_SHOW_CLAUDE_UPDATE:-true}"
 # Path display mode (path, project, both)
 PATH_MODE="${CLAUDEBAR_DISPLAY_PATH:-path}"
 
-# ANSI color codes
-BLUE='\033[34m'
-GREEN='\033[32m'
-YELLOW='\033[33m'
-RED='\033[31m'
-RESET='\033[0m'
+# ANSI color codes (disabled when NO_COLOR is set)
+# See https://no-color.org/
+if [ -n "${NO_COLOR:-}" ]; then
+    BLUE=''
+    GREEN=''
+    YELLOW=''
+    RED=''
+    RESET=''
+else
+    BLUE='\033[34m'
+    GREEN='\033[32m'
+    YELLOW='\033[33m'
+    RED='\033[31m'
+    RESET='\033[0m'
+fi
 
 # Display mode (icon, label, none)
 MODE="${CLAUDEBAR_MODE:-icon}"
@@ -208,6 +217,7 @@ case "${1:-}" in
         echo "Environment Variables:"
         echo "  CLAUDEBAR_MODE         Display mode: icon (default), label, none"
         echo "  CLAUDEBAR_DISPLAY_PATH Path display: path (default), project, both"
+        echo "  NO_COLOR               Disable colored output (any value)"
         exit 0
         ;;
     --check-update)
