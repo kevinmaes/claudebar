@@ -35,7 +35,7 @@ curl -fsSL https://kevinmaes.github.io/claudebar/install.sh | bash
 <summary>Or use npx (Node.js users)</summary>
 
 ```bash
-npx claudebar install
+npx claudebar
 ```
 
 </details>
