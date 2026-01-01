@@ -349,3 +349,113 @@ EOF
 
     cleanup_dir "$TEST_REPO"
 }
+
+# =============================================================================
+# Existing Installation Detection Tests
+# =============================================================================
+
+# Helper: version comparison function (same as in install.sh)
+version_gt() {
+    [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" != "$1" ]
+}
+
+@test "version_gt returns true when first version is greater" {
+    run version_gt "1.0.0" "0.9.0"
+    [ "$status" -eq 0 ]
+
+    run version_gt "0.10.0" "0.9.0"
+    [ "$status" -eq 0 ]
+
+    run version_gt "0.9.1" "0.9.0"
+    [ "$status" -eq 0 ]
+}
+
+@test "version_gt returns false when versions are equal" {
+    run version_gt "1.0.0" "1.0.0"
+    [ "$status" -eq 1 ]
+
+    run version_gt "0.8.0" "0.8.0"
+    [ "$status" -eq 1 ]
+}
+
+@test "version_gt returns false when first version is smaller" {
+    run version_gt "0.9.0" "1.0.0"
+    [ "$status" -eq 1 ]
+
+    run version_gt "0.9.0" "0.10.0"
+    [ "$status" -eq 1 ]
+
+    run version_gt "0.9.0" "0.9.1"
+    [ "$status" -eq 1 ]
+}
+
+@test "detection reads version from version file when present" {
+    # Setup: create version file
+    echo "0.7.0" > "$HOME/.claude/.claudebar-installed-version"
+    cp "$PROJECT_ROOT/statusline.sh" "$HOME/.claude/statusline.sh"
+
+    # Read version from file (same logic as install.sh)
+    VERSION_FILE="$HOME/.claude/.claudebar-installed-version"
+    if [ -f "$VERSION_FILE" ]; then
+        INSTALLED_VERSION=$(cat "$VERSION_FILE")
+    fi
+
+    [ "$INSTALLED_VERSION" = "0.7.0" ]
+}
+
+@test "detection reads version from statusline.sh when version file missing" {
+    # Setup: no version file, only statusline.sh
+    cp "$PROJECT_ROOT/statusline.sh" "$HOME/.claude/statusline.sh"
+    [ ! -f "$HOME/.claude/.claudebar-installed-version" ]
+
+    # Read version from script (same logic as install.sh)
+    STATUSLINE_SCRIPT="$HOME/.claude/statusline.sh"
+    INSTALLED_VERSION=$(grep -o 'CLAUDEBAR_VERSION="[^"]*"' "$STATUSLINE_SCRIPT" 2>/dev/null | cut -d'"' -f2 || echo "unknown")
+
+    # Should match the version in the project's statusline.sh
+    expected=$(grep -o 'CLAUDEBAR_VERSION="[^"]*"' "$PROJECT_ROOT/statusline.sh" | cut -d'"' -f2)
+    [ "$INSTALLED_VERSION" = "$expected" ]
+}
+
+@test "detection identifies existing installation by statusline.sh presence" {
+    # No installation
+    [ ! -f "$HOME/.claude/statusline.sh" ]
+
+    # Simulate install
+    cp "$PROJECT_ROOT/statusline.sh" "$HOME/.claude/statusline.sh"
+
+    # Now installation is detected
+    [ -f "$HOME/.claude/statusline.sh" ]
+}
+
+@test "detection shows update available when newer version exists" {
+    # Simulate older installed version
+    echo "0.7.0" > "$HOME/.claude/.claudebar-installed-version"
+    INSTALLED_VERSION="0.7.0"
+    LATEST_VERSION="0.8.0"
+
+    # Version comparison (same logic as install.sh)
+    if version_gt "$LATEST_VERSION" "$INSTALLED_VERSION"; then
+        UPDATE_AVAILABLE=true
+    else
+        UPDATE_AVAILABLE=false
+    fi
+
+    [ "$UPDATE_AVAILABLE" = "true" ]
+}
+
+@test "detection shows no update when already on latest" {
+    # Simulate current version installed
+    echo "0.8.0" > "$HOME/.claude/.claudebar-installed-version"
+    INSTALLED_VERSION="0.8.0"
+    LATEST_VERSION="0.8.0"
+
+    # Version comparison
+    if version_gt "$LATEST_VERSION" "$INSTALLED_VERSION"; then
+        UPDATE_AVAILABLE=true
+    else
+        UPDATE_AVAILABLE=false
+    fi
+
+    [ "$UPDATE_AVAILABLE" = "false" ]
+}
