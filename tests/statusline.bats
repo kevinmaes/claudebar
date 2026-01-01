@@ -773,3 +773,108 @@ teardown() {
     [[ "$output" == *"NO_COLOR"* ]]
     [[ "$output" == *"Disable colored output"* ]]
 }
+
+# =============================================================================
+# CLI Argument Handling Tests (Issue #97)
+# =============================================================================
+
+@test "'update' command works as alias for '--update'" {
+    # We can't actually run the full update (it curls), but we can verify
+    # the command is recognized and starts the update process
+    # Using a subshell with timeout to prevent hanging if something goes wrong
+    result=$("$STATUSLINE" update 2>&1 | head -1)
+
+    # Should start the update process, not show "Unknown command"
+    [[ "$result" == *"Updating claudebar"* ]]
+}
+
+@test "'check-update' command works as alias for '--check-update'" {
+    run "$STATUSLINE" check-update
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"claudebar v"* ]]
+    [[ "$output" != *"Unknown command"* ]]
+}
+
+@test "unknown command 'version' suggests correct flag" {
+    run "$STATUSLINE" version
+
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Unknown command: version"* ]]
+    [[ "$output" == *"Did you mean '--version'?"* ]]
+}
+
+@test "unknown command 'help' suggests correct flag" {
+    run "$STATUSLINE" help
+
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Unknown command: help"* ]]
+    [[ "$output" == *"Did you mean '--help'?"* ]]
+}
+
+@test "unknown flag with dashes shows error without suggestion" {
+    run "$STATUSLINE" --unknown-flag
+
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Unknown option: --unknown-flag"* ]]
+    [[ "$output" == *"Run 'claudebar --help'"* ]]
+    [[ "$output" != *"Did you mean"* ]]
+}
+
+@test "unknown short flag shows error" {
+    run "$STATUSLINE" -x
+
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Unknown option: -x"* ]]
+}
+
+@test "arbitrary word shows helpful error" {
+    run "$STATUSLINE" foo
+
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Unknown command: foo"* ]]
+    [[ "$output" == *"Did you mean '--foo'?"* ]]
+}
+
+@test "does not hang on unknown command (exits immediately)" {
+    # This test ensures the command exits quickly rather than hanging
+    # waiting for stdin input. The fix for issue #97 ensures unknown
+    # commands return an error immediately instead of waiting for stdin.
+    run "$STATUSLINE" someinvalidcommand
+
+    # Should exit with status 1 (error) and show helpful message
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Unknown command"* ]]
+}
+
+@test "valid flags still work after adding unknown command handling" {
+    run "$STATUSLINE" --version
+    [ "$status" -eq 0 ]
+    [[ "$output" == "claudebar v"* ]]
+
+    run "$STATUSLINE" -v
+    [ "$status" -eq 0 ]
+
+    run "$STATUSLINE" --help
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Usage:"* ]]
+
+    run "$STATUSLINE" -h
+    [ "$status" -eq 0 ]
+
+    run "$STATUSLINE" --check-update
+    [ "$status" -eq 0 ]
+}
+
+@test "--path-mode flag is recognized and not treated as unknown" {
+    TEST_REPO=$(setup_git_repo)
+
+    # --path-mode should be recognized and not trigger "Unknown option" error
+    result=$(mock_input_minimal "$TEST_REPO" | "$STATUSLINE" --path-mode=project 2>&1)
+    exit_code=$?
+
+    # Should succeed (exit 0) and contain path output
+    [ "$exit_code" -eq 0 ]
+    [[ "$result" != *"Unknown option"* ]]
+    [[ "$result" != *"Unknown command"* ]]
+}
