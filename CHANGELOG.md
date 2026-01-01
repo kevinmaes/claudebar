@@ -1,5 +1,11 @@
 # Claudebar
 
+## 0.9.1
+
+### Patch Changes
+
+- aac4b16: Improve README update section: add claudebar shell command option, combine update notification sections, and update examples to use Opus 4.5
+
 ## 0.9.0
 
 ### Minor Changes
