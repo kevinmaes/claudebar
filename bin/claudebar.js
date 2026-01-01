@@ -38,13 +38,13 @@ Documentation: https://github.com/kevinmaes/claudebar
 `);
 };
 
-const runScript = (scriptName) => {
+const runScript = (scriptName, args = []) => {
   const scriptPath = join(rootDir, scriptName);
 
   // Check for bash availability
   const shell = process.platform === 'win32' ? 'bash' : '/bin/bash';
 
-  const child = spawn(shell, [scriptPath], {
+  const child = spawn(shell, [scriptPath, ...args], {
     stdio: 'inherit',
     cwd: rootDir,
   });
@@ -65,7 +65,7 @@ const runScript = (scriptName) => {
 };
 
 const commands = {
-  install: () => runScript('install.sh'),
+  install: () => runScript('install.sh', ['--skip-shell-prompt']),
   uninstall: () => runScript('uninstall.sh'),
   update: () => runScript('update.sh'),
 };
