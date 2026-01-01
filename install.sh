@@ -21,7 +21,63 @@ done
 CLAUDE_DIR="$HOME/.claude"
 STATUSLINE_SCRIPT="$CLAUDE_DIR/statusline.sh"
 SETTINGS_FILE="$CLAUDE_DIR/settings.json"
+VERSION_FILE="$CLAUDE_DIR/.claudebar-installed-version"
 RAW_URL="https://raw.githubusercontent.com/kevinmaes/claudebar/main/statusline.sh"
+PACKAGE_JSON_URL="https://raw.githubusercontent.com/kevinmaes/claudebar/main/package.json"
+UPDATE_URL="https://raw.githubusercontent.com/kevinmaes/claudebar/main/update.sh"
+
+# Compare semver versions - returns 0 if $1 > $2
+version_gt() {
+    [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" != "$1" ]
+}
+
+# Check for existing installation
+if [ -f "$STATUSLINE_SCRIPT" ]; then
+    # Get installed version
+    if [ -f "$VERSION_FILE" ]; then
+        INSTALLED_VERSION=$(cat "$VERSION_FILE")
+    else
+        INSTALLED_VERSION=$(grep -o 'CLAUDEBAR_VERSION="[^"]*"' "$STATUSLINE_SCRIPT" 2>/dev/null | cut -d'"' -f2 || echo "unknown")
+    fi
+
+    # Fetch latest version from package.json
+    LATEST_VERSION=$(curl -fsSL "$PACKAGE_JSON_URL" 2>/dev/null | grep '"version"' | head -1 | sed 's/.*"version": *"\([^"]*\)".*/\1/' || echo "")
+
+    echo ""
+    if [ -n "$LATEST_VERSION" ] && version_gt "$LATEST_VERSION" "$INSTALLED_VERSION"; then
+        echo "claudebar v$INSTALLED_VERSION is installed. (v$LATEST_VERSION available)"
+    else
+        echo "claudebar v$INSTALLED_VERSION is already installed."
+    fi
+    echo ""
+    echo "What would you like to do?"
+    echo ""
+    echo "  1) Update       - Update to latest (preserves config)"
+    echo "  2) Reinstall    - Fresh install (reconfigure all options)"
+    echo "  3) Cancel       - Exit without changes"
+    echo ""
+    read -p "Enter choice [1-3]: " -n 1 -r < /dev/tty
+    echo ""
+
+    case "$REPLY" in
+        1)
+            echo ""
+            echo "Running update..."
+            # Execute update script
+            curl -fsSL "$UPDATE_URL" | bash
+            exit 0
+            ;;
+        2)
+            echo ""
+            echo "Proceeding with fresh install..."
+            ;;
+        *)
+            echo ""
+            echo "Installation cancelled."
+            exit 0
+            ;;
+    esac
+fi
 
 echo "Installing claudebar statusline..."
 
