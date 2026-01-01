@@ -55,6 +55,12 @@ curl -fsSL https://raw.githubusercontent.com/kevinmaes/claudebar/main/install.sh
 curl -fsSL https://kevinmaes.github.io/claudebar/update.sh | bash
 ```
 
+If you added Claudebar to your shell during installation:
+
+```bash
+claudebar update
+```
+
 Or use the built-in update command or npx:
 
 ```bash
@@ -63,15 +69,29 @@ Or use the built-in update command or npx:
 npx claudebar update
 ```
 
-### Update Notification
+### Update Notifications
 
-The statusline shows a yellow `↑` indicator when a newer version is available:
+The statusline shows yellow `↑` indicators when newer versions are available. Version checks are cached for 24 hours.
+
+**Claudebar update:**
 
 ```
-🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (C: 40k | R: 44k / 200k) | ↑ claudebar v0.6.0
+🤖 Opus 4.5 | 🧠 42% ▮▮▯▯▯ (C: 40k | R: 44k / 200k) | ↑ claudebar v0.6.0
 ```
 
-Version checks are cached for 24 hours. To manually check:
+**Claude Code update:**
+
+```
+🤖 Opus 4.5 | 🧠 42% ▮▮▯▯▯ (C: 40k | R: 44k / 200k) | ↑ CC v2.1.0
+```
+
+The Claude Code indicator checks the VS Code/Cursor extensions directory to detect your installed version and compares it against the latest marketplace version. To disable:
+
+```bash
+export CLAUDEBAR_SHOW_CLAUDE_UPDATE=false
+```
+
+To manually check for updates:
 
 ```bash
 ~/.claude/statusline.sh --check-update
@@ -217,22 +237,6 @@ export CLAUDEBAR_DISPLAY_PATH=both     # Shows project (parent/current)
 Using `project` mode is recommended when working with multiple projects, as `parent/current` can be confusing.
 
 Add the export to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) to persist the setting.
-
-### Claude Code Update Indicator
-
-The statusline shows when a newer version of Claude Code is available in the VS Code marketplace:
-
-```text
-🤖 Sonnet 4 | 🧠 42% ▮▮▯▯▯ (C: 40k | R: 44k / 200k) | ↑ CC v2.1.0
-```
-
-This checks the VS Code/Cursor extensions directory to detect your installed version and compares it against the latest marketplace version. Checks are cached for 24 hours.
-
-To disable this indicator:
-
-```bash
-export CLAUDEBAR_SHOW_CLAUDE_UPDATE=false
-```
 
 ## CLI Flags
 
