@@ -220,7 +220,7 @@ case "${1:-}" in
         echo "  NO_COLOR               Disable colored output (any value)"
         exit 0
         ;;
-    --check-update)
+    --check-update|check-update)
         echo "claudebar v$CLAUDEBAR_VERSION"
         remote_version=$(check_for_updates force)
         if [ -n "$remote_version" ]; then
@@ -235,10 +235,26 @@ case "${1:-}" in
         fi
         exit 0
         ;;
-    --update)
+    --update|update)
         echo "Updating claudebar..."
         curl -fsSL https://raw.githubusercontent.com/kevinmaes/claudebar/main/update.sh | bash
         exit $?
+        ;;
+    --path-mode=*)
+        # Valid flag, already processed above - continue to normal execution
+        ;;
+    -*)
+        # Unknown flag starting with dash
+        echo "Unknown option: $1"
+        echo "Run 'claudebar --help' for usage information."
+        exit 1
+        ;;
+    ?*)
+        # Non-empty argument without dash (like 'update' instead of '--update')
+        echo "Unknown command: $1"
+        echo "Did you mean '--$1'?"
+        echo "Run 'claudebar --help' for usage information."
+        exit 1
         ;;
 esac
 
