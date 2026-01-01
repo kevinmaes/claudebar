@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub release](https://img.shields.io/github/v/release/kevinmaes/claudebar?color=blue)](https://github.com/kevinmaes/claudebar/releases)
+[![npm version](https://img.shields.io/npm/v/claudebar.svg)](https://www.npmjs.com/package/claudebar)
 [![CI](https://github.com/kevinmaes/claudebar/actions/workflows/ci.yml/badge.svg)](https://github.com/kevinmaes/claudebar/actions/workflows/ci.yml)
 [![Contributing](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Changelog](https://img.shields.io/badge/changelog-Keep%20a%20Changelog-orange.svg)](CHANGELOG.md)
