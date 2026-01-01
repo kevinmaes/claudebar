@@ -20,7 +20,7 @@
 #   --path-mode=MODE       Override CLAUDEBAR_DISPLAY_PATH (path|project|both)
 
 # Version (updated by changesets)
-CLAUDEBAR_VERSION="0.7.2"
+CLAUDEBAR_VERSION="0.8.0"
 
 # Cache settings
 CACHE_FILE="$HOME/.claude/.claudebar-version-cache"
@@ -33,12 +33,21 @@ SHOW_CLAUDE_UPDATE="${CLAUDEBAR_SHOW_CLAUDE_UPDATE:-true}"
 # Path display mode (path, project, both)
 PATH_MODE="${CLAUDEBAR_DISPLAY_PATH:-path}"
 
-# ANSI color codes
-BLUE='\033[34m'
-GREEN='\033[32m'
-YELLOW='\033[33m'
-RED='\033[31m'
-RESET='\033[0m'
+# ANSI color codes (disabled when NO_COLOR is set)
+# See https://no-color.org/
+if [ -n "${NO_COLOR:-}" ]; then
+    BLUE=''
+    GREEN=''
+    YELLOW=''
+    RED=''
+    RESET=''
+else
+    BLUE='\033[34m'
+    GREEN='\033[32m'
+    YELLOW='\033[33m'
+    RED='\033[31m'
+    RESET='\033[0m'
+fi
 
 # Display mode (icon, label, none)
 MODE="${CLAUDEBAR_MODE:-icon}"
@@ -208,9 +217,10 @@ case "${1:-}" in
         echo "Environment Variables:"
         echo "  CLAUDEBAR_MODE         Display mode: icon (default), label, none"
         echo "  CLAUDEBAR_DISPLAY_PATH Path display: path (default), project, both"
+        echo "  NO_COLOR               Disable colored output (any value)"
         exit 0
         ;;
-    --check-update)
+    --check-update|check-update)
         echo "claudebar v$CLAUDEBAR_VERSION"
         remote_version=$(check_for_updates force)
         if [ -n "$remote_version" ]; then
@@ -225,10 +235,26 @@ case "${1:-}" in
         fi
         exit 0
         ;;
-    --update)
+    --update|update)
         echo "Updating claudebar..."
         curl -fsSL https://raw.githubusercontent.com/kevinmaes/claudebar/main/update.sh | bash
         exit $?
+        ;;
+    --path-mode=*)
+        # Valid flag, already processed above - continue to normal execution
+        ;;
+    -*)
+        # Unknown flag starting with dash
+        echo "Unknown option: $1"
+        echo "Run 'claudebar --help' for usage information."
+        exit 1
+        ;;
+    ?*)
+        # Non-empty argument without dash (like 'update' instead of '--update')
+        echo "Unknown command: $1"
+        echo "Did you mean '--$1'?"
+        echo "Run 'claudebar --help' for usage information."
+        exit 1
         ;;
 esac
 
