@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub release](https://img.shields.io/github/v/release/kevinmaes/claudebar?color=blue)](https://github.com/kevinmaes/claudebar/releases)
+[![npm version](https://img.shields.io/npm/v/claudebar.svg)](https://www.npmjs.com/package/claudebar)
 [![CI](https://github.com/kevinmaes/claudebar/actions/workflows/ci.yml/badge.svg)](https://github.com/kevinmaes/claudebar/actions/workflows/ci.yml)
 [![Contributing](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Changelog](https://img.shields.io/badge/changelog-Keep%20a%20Changelog-orange.svg)](CHANGELOG.md)
@@ -31,6 +32,15 @@ curl -fsSL https://kevinmaes.github.io/claudebar/install.sh | bash
 ```
 
 <details>
+<summary>Or use npx (Node.js users)</summary>
+
+```bash
+npx claudebar install
+```
+
+</details>
+
+<details>
 <summary>Or use the full GitHub URL</summary>
 
 ```bash
@@ -45,10 +55,12 @@ curl -fsSL https://raw.githubusercontent.com/kevinmaes/claudebar/main/install.sh
 curl -fsSL https://kevinmaes.github.io/claudebar/update.sh | bash
 ```
 
-Or use the built-in update command:
+Or use the built-in update command or npx:
 
 ```bash
 ~/.claude/statusline.sh --update
+# or
+npx claudebar update
 ```
 
 ### Update Notification
@@ -89,6 +101,8 @@ curl -fsSL https://kevinmaes.github.io/claudebar/install.sh | bash
 
 ```bash
 curl -fsSL https://kevinmaes.github.io/claudebar/uninstall.sh | bash
+# or
+npx claudebar uninstall
 ```
 
 ## Requirements
