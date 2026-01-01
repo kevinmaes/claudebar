@@ -1,9 +1,30 @@
 {
   "name": "claudebar",
   "version": "0.8.0",
-  "private": true,
   "description": "A bash statusline for Claude Code",
   "type": "module",
+  "license": "MIT",
+  "author": "Kevin Maes",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kevinmaes/claudebar.git"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "statusline",
+    "terminal",
+    "cli",
+    "anthropic"
+  ],
+  "bin": {
+    "claudebar": "bin/claudebar.js"
+  },
+  "files": [
+    "bin/",
+    "*.sh",
+    "options-manifest.json"
+  ],
   "scripts": {
     "changeset": "changeset",
     "version": "changeset version && VERSION=$(grep -o '\"version\": \"[^\"]*\"' package.json | head -1 | cut -d'\"' -f4) && sed -i.bak \"s/CLAUDEBAR_VERSION=\\\"[^\\\"]*\\\"/CLAUDEBAR_VERSION=\\\"$VERSION\\\"/\" statusline.sh && rm -f statusline.sh.bak"
