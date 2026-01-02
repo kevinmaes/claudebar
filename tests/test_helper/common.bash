@@ -52,6 +52,8 @@ mock_input_with_billing() {
     local context_size="${3:-200000}"
     local input_tokens="${4:-40000}"
     local output_tokens="${5:-44000}"
+    local cache_creation="${6:-0}"
+    local cache_read="${7:-0}"
 
     cat <<EOF
 {
@@ -61,7 +63,11 @@ mock_input_with_billing() {
     "context_window": {
         "context_window_size": $context_size,
         "total_input_tokens": $input_tokens,
-        "total_output_tokens": $output_tokens
+        "total_output_tokens": $output_tokens,
+        "current_usage": {
+            "cache_creation_input_tokens": $cache_creation,
+            "cache_read_input_tokens": $cache_read
+        }
     },
     "cost": {
         "total_duration_ms": $duration_ms

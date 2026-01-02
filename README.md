@@ -19,7 +19,7 @@ A bash statusline for Claude Code.
 
 **Git-First Design** - See your branch, staged files, unstaged changes, and untracked files at a glance. Includes worktree support for advanced workflows.
 
-**Visual Context Tracking** - Color-coded progress bars (▮▮▯▯▯) make it easy to monitor your context window usage. Green under 50%, yellow 50-80%, red above 80%.
+**Cache Token Display** - See your cache token usage at a glance (C: creation, R: read tokens). Helps you understand how your context is being utilized.
 
 **Simple Configuration** - Three display modes via a single environment variable. No complex config files to maintain.
 
@@ -76,13 +76,13 @@ The statusline shows yellow `↑` indicators when newer versions are available. 
 **Claudebar update:**
 
 ```
-🤖 Opus 4.5 | 🧠 42% ▮▮▯▯▯ (C: 40k | R: 44k / 200k) | ↑ claudebar v0.6.0
+🤖 Opus 4.5 | 💾 C: 40k | R: 44k | ↑ claudebar v0.6.0
 ```
 
 **Claude Code update:**
 
 ```
-🤖 Opus 4.5 | 🧠 42% ▮▮▯▯▯ (C: 40k | R: 44k / 200k) | ↑ CC v2.1.0
+🤖 Opus 4.5 | 💾 C: 40k | R: 44k | ↑ CC v2.1.0
 ```
 
 The Claude Code indicator checks the VS Code/Cursor extensions directory to detect your installed version and compares it against the latest marketplace version. To disable:
@@ -184,9 +184,9 @@ sudo dnf install jq
     <td>Untracked/added file count</td>
   </tr>
   <tr>
-    <td>🧠</td>
-    <td>Context</td>
-    <td>Context window usage with cache breakdown (C: creation, R: read tokens)</td>
+    <td>💾</td>
+    <td>Cache</td>
+    <td>Cache token usage (C: creation, R: read tokens)</td>
   </tr>
   <tr>
     <td>↑</td>
@@ -199,6 +199,8 @@ sudo dnf install jq
     <td>Update available (yellow, shown when newer version exists in VS Code marketplace)</td>
   </tr>
 </table>
+
+> **Note:** Context window percentage display was removed because Claude Code's statusline API only provides cumulative session tokens, not current context usage. See [anthropics/claude-code#13783](https://github.com/anthropics/claude-code/issues/13783) for details. Cache tokens are still displayed when available.
 
 ## Configuration
 
