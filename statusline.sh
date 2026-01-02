@@ -381,9 +381,11 @@ if [ -n "$context_size" ] && [ "$context_size" -gt 0 ] 2>/dev/null; then
     cache_creation_k=$((cache_creation / 1000))
     cache_read_k=$((cache_read / 1000))
 
-    # Build progress bar (5 segments)
+    # Build progress bar (5 segments, capped at 100%)
     bar_width=5
-    filled=$((percent * bar_width / 100))
+    bar_percent=$percent
+    [ "$bar_percent" -gt 100 ] && bar_percent=100
+    filled=$((bar_percent * bar_width / 100))
     empty=$((bar_width - filled))
     bar="${CTX_COLOR}"
     for ((i=0; i<filled; i++)); do bar+="▮"; done

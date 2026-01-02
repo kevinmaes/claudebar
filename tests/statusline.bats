@@ -323,6 +323,20 @@ teardown() {
     [[ "$result" == *$'\033[31m'* ]]
 }
 
+@test "context window bar capped at 5 segments when over 100%" {
+    TEST_REPO=$(setup_git_repo)
+
+    # 600k tokens out of 200k = 300% (way over capacity)
+    result=$(mock_input "$TEST_REPO" 200000 300000 300000 | "$STATUSLINE" | strip_colors)
+
+    # Should show percentage over 100%
+    [[ "$result" == *"300%"* ]]
+    # Bar should still be exactly 5 filled segments (▮▮▮▮▮), not more
+    [[ "$result" == *"▮▮▮▮▮"* ]]
+    # Should NOT have 6+ segments
+    [[ "$result" != *"▮▮▮▮▮▮"* ]]
+}
+
 # =============================================================================
 # Billing Block Tests
 # =============================================================================
